@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://api.ferreterianoa.com/api/$1"
+      "destination": "http://147.93.37.155:5000/api/$1"
     },
     {
       "source": "/(.*)",
