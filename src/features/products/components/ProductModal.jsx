@@ -1,0 +1,411 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
+import Select from 'react-select';
+import { useDropzone } from 'react-dropzone';
+import { X, Save, Box, Tag, Image as ImageIcon, Info, Camera, Trash2, RefreshCw } from 'lucide-react';
+import { createProduct, updateProduct } from '../services/productService';
+import Swal from 'sweetalert2';
+
+const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) => {
+    const isEditing = !!product;
+
+    const getInitialFormData = () => ({
+        nombre: '',
+        codigo_barras: '',
+        categoria_id: null,
+        descripcion: '',
+        precio_compra: '',
+        precio_venta: '',
+        stock: '',
+        stock_minimo: '',
+        activo: true,
+        imagen: null
+    });
+
+    const [formData, setFormData] = useState(getInitialFormData());
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [imagePreview, setImagePreview] = useState(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            if (product) {
+                // Edit mode: populate form with product data
+                const matchedCategory = categories.find(c => c.value === product.categoria_id);
+                setFormData({
+                    nombre: product.nombre || '',
+                    codigo_barras: product.codigo_barras || '',
+                    categoria_id: matchedCategory || null,
+                    descripcion: product.descripcion || '',
+                    precio_compra: product.precio_compra || '',
+                    precio_venta: product.precio_venta || '',
+                    stock: product.stock?.toString() || '',
+                    stock_minimo: product.stock_minimo?.toString() || '',
+                    activo: product.activo === 1 || product.activo === true,
+                    imagen: null // new image file, null means keep existing
+                });
+                // Show existing image as preview
+                if (product.imagen) {
+                    const imgUrl = product.imagen.startsWith('http')
+                        ? product.imagen
+                        : `http://localhost:5000${product.imagen}`;
+                    setImagePreview(imgUrl);
+                } else {
+                    setImagePreview(null);
+                }
+            } else {
+                // Create mode: reset form
+                setFormData(getInitialFormData());
+                setImagePreview(null);
+            }
+        }
+    }, [isOpen, product, categories]);
+
+    const onDrop = useCallback(acceptedFiles => {
+        if (acceptedFiles && acceptedFiles.length > 0) {
+            const file = acceptedFiles[0];
+            setFormData(prev => ({ ...prev, imagen: file }));
+            setImagePreview(URL.createObjectURL(file));
+        }
+    }, []);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: {
+            'image/jpeg': ['.jpg', '.jpeg'],
+            'image/png': ['.png'],
+            'image/webp': ['.webp']
+        },
+        maxSize: 2097152,
+        multiple: false
+    });
+
+    const removeImage = (e) => {
+        e.stopPropagation();
+        setFormData(prev => ({ ...prev, imagen: null }));
+        setImagePreview(null);
+    };
+
+    if (!isOpen) return null;
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
+    };
+
+    const handleCategoryChange = (selectedOption) => {
+        setFormData(prev => ({ ...prev, categoria_id: selectedOption }));
+    };
+
+    const generateBarcode = () => {
+        const randomCode = Math.floor(1000000000000 + Math.random() * 9000000000000).toString();
+        setFormData(prev => ({ ...prev, codigo_barras: randomCode }));
+    };
+
+    const adjustStock = (amount) => {
+        setFormData(prev => {
+            const currentStock = parseInt(prev.stock || 0);
+            const newStock = Math.max(0, currentStock + amount);
+            return { ...prev, stock: newStock.toString() };
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!formData.nombre || !formData.categoria_id || formData.precio_compra === '' || formData.precio_venta === '' || formData.stock === '') {
+            Swal.fire({
+                title: 'Campos Incompletos',
+                text: 'Por favor, llena todos los campos obligatorios indicados con (*).',
+                icon: 'warning',
+                customClass: { popup: 'my-swal-bg', confirmButton: 'my-swal-confirm' }
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const formDataToSend = new FormData();
+        formDataToSend.append('nombre', formData.nombre);
+        if (formData.descripcion) formDataToSend.append('descripcion', formData.descripcion);
+        if (formData.codigo_barras) formDataToSend.append('codigo_barras', formData.codigo_barras);
+        formDataToSend.append('categoria_id', formData.categoria_id.value);
+        formDataToSend.append('precio_compra', formData.precio_compra);
+        formDataToSend.append('precio_venta', formData.precio_venta);
+        formDataToSend.append('stock', formData.stock);
+        formDataToSend.append('stock_minimo', formData.stock_minimo ? formData.stock_minimo : 5);
+        formDataToSend.append('activo', formData.activo ? 1 : 0);
+        
+        // Only append image if a new file was selected
+        if (formData.imagen && formData.imagen instanceof File) {
+            formDataToSend.append('imagen', formData.imagen);
+        }
+
+        try {
+            if (isEditing) {
+                await updateProduct(product.id, formDataToSend);
+                Swal.fire({
+                    title: '¡Actualizado!',
+                    text: 'Producto actualizado correctamente.',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { popup: 'my-swal-bg' }
+                });
+            } else {
+                await createProduct(formDataToSend);
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: 'Producto creado correctamente.',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: { popup: 'my-swal-bg' }
+                });
+            }
+            onSave();
+            onClose();
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Hubo un error al guardar el producto.';
+            Swal.fire({
+                title: 'Error',
+                text: errorMsg,
+                icon: 'error',
+                customClass: { popup: 'my-swal-bg', confirmButton: 'my-swal-confirm' }
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return ReactDOM.createPortal(
+        <div className="modal-overlay">
+            <div className="modal-content large page-transition-enter-active">
+                <div className="modal-header">
+                    <h3>{isEditing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
+                    <button type="button" className="icon-btn" onClick={onClose}><X size={20} /></button>
+                </div>
+                
+                <form onSubmit={handleSubmit} className="modal-body" style={{ padding: '2rem' }}>
+                    
+                    {/* SECTION 1: Basic Information */}
+                    <div className="modal-section">
+                        <h4 className="modal-section-title"><Box size={16} /> Información Básica</h4>
+                        <div className="grid-2-col">
+                            <div className="form-group col-span-2">
+                                <label>Nombre del Producto *</label>
+                                <input 
+                                    type="text" 
+                                    name="nombre" 
+                                    value={formData.nombre} 
+                                    onChange={handleChange} 
+                                    placeholder="Ej. Taladro Percutor Dewalt 20V"
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Código de Barras</label>
+                                <div className="input-with-action">
+                                    <input 
+                                        type="text" 
+                                        name="codigo_barras" 
+                                        value={formData.codigo_barras} 
+                                        onChange={handleChange} 
+                                        placeholder="Ej. 7501066000000"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        className="btn-secondary" 
+                                        onClick={generateBarcode}
+                                        title="Generar código aleatorio"
+                                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 0.75rem' }}
+                                    >
+                                        <RefreshCw size={16} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="form-group" style={{ zIndex: 10 }}>
+                                <label>Categoría *</label>
+                                <Select
+                                    classNamePrefix="react-select"
+                                    placeholder="Buscar categoría..."
+                                    isClearable
+                                    isSearchable
+                                    options={categories}
+                                    value={formData.categoria_id}
+                                    onChange={handleCategoryChange}
+                                />
+                            </div>
+
+                            <div className="form-group col-span-2">
+                                <label>Descripción del Producto</label>
+                                <textarea 
+                                    name="descripcion" 
+                                    className="form-textarea"
+                                    value={formData.descripcion} 
+                                    onChange={handleChange} 
+                                    placeholder="Detalles adicionales, uso, características..."
+                                    rows="3"
+                                    maxLength={500}
+                                />
+                                <div className="char-counter">
+                                    {formData.descripcion.length}/500
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SECTION 2: Pricing and Stock */}
+                    <div className="modal-section" style={{ zIndex: 9 }}>
+                        <h4 className="modal-section-title"><Tag size={16} /> Precios y Stock</h4>
+                        <div className="grid-3-col">
+                            <div className="form-group">
+                                <label>Precio Compra *</label>
+                                <div className="input-with-addon">
+                                    <span className="input-addon">Bs</span>
+                                    <input 
+                                        type="number" 
+                                        step="0.01"
+                                        min="0"
+                                        name="precio_compra" 
+                                        value={formData.precio_compra} 
+                                        onChange={handleChange} 
+                                        required
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Precio Venta *</label>
+                                <div className="input-with-addon">
+                                    <span className="input-addon">Bs</span>
+                                    <input 
+                                        type="number" 
+                                        step="0.01"
+                                        min="0"
+                                        name="precio_venta" 
+                                        value={formData.precio_venta} 
+                                        onChange={handleChange} 
+                                        required
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Estado del Producto</label>
+                                <label className="switch-container" title="Si está inactivo, no aparecerá para ventas.">
+                                    <input 
+                                        type="checkbox" 
+                                        name="activo" 
+                                        checked={formData.activo}
+                                        onChange={handleChange}
+                                        style={{ display: 'none' }}
+                                    />
+                                    <div className="switch"></div>
+                                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                                        {formData.activo ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div className="form-group">
+                                <label>{isEditing ? 'Stock Actual *' : 'Stock Inicial *'}</label>
+                                <div className="input-with-action">
+                                    <input 
+                                        type="number" 
+                                        name="stock" 
+                                        min="0"
+                                        value={formData.stock} 
+                                        onChange={handleChange} 
+                                        required
+                                        placeholder="0"
+                                        style={{ textAlign: 'center' }}
+                                    />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        <button type="button" onClick={() => adjustStock(1)} className="btn-secondary" style={{ padding: '2px 6px', fontSize: '10px' }}>+</button>
+                                        <button type="button" onClick={() => adjustStock(-1)} className="btn-secondary" style={{ padding: '2px 6px', fontSize: '10px' }}>-</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label title="Nivel de alerta en inventario">
+                                    Stock Mínimo 
+                                    <Info size={12} className="tooltip-icon" />
+                                </label>
+                                <input 
+                                    type="number" 
+                                    name="stock_minimo" 
+                                    min="0"
+                                    value={formData.stock_minimo} 
+                                    onChange={handleChange} 
+                                    placeholder="5 (por defecto)"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* SECTION 3: Image */}
+                    <div className="modal-section" style={{ paddingBottom: '2rem' }}>
+                        <h4 className="modal-section-title"><ImageIcon size={16} /> Fotografía del Producto</h4>
+                        
+                        <div {...getRootProps()} className={`dropzone-container ${isDragActive ? 'active' : ''}`}>
+                            <input {...getInputProps()} />
+                            
+                            {imagePreview ? (
+                                <div className="dropzone-preview">
+                                    <img src={imagePreview} alt="Preview" />
+                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                            {formData.imagen?.name || (isEditing ? 'Imagen actual' : 'Imagen cargada')}
+                                        </span>
+                                        <button type="button" onClick={removeImage} className="btn-danger-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                            <Trash2 size={14} /> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <Camera size={40} color="var(--text-secondary)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                    <p style={{ fontWeight: 500, marginBottom: '0.25rem' }}>
+                                        Arrastra y suelta tu imagen aquí
+                                    </p>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                                        Formatos soportados: PNG, JPG, WEBP (Máx. 2MB)
+                                    </p>
+                                    <button type="button" className="btn-secondary">
+                                        Explorar archivos
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="modal-footer" style={{ padding: '0', paddingTop: '1.5rem', borderTop: 'none', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--danger-red)', marginRight: '4px' }}>*</span> Campos obligatorios
+                        </span>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>
+                                Cancelar
+                            </button>
+                            <button type="submit" className="btn-primary" disabled={isSubmitting} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Save size={16} /> {isSubmitting ? 'Guardando...' : (isEditing ? 'Actualizar Producto' : 'Guardar Producto')}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+export default ProductModal;

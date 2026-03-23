@@ -1,0 +1,17 @@
+
+/* Final Minimalist Hero styles */
+.hero-glass-container {
+  padding: 7rem 4rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hero-description {
+  margin-bottom: 0 !important;
+  opacity: 0.9;
+}
+
+.hero-actions {
+  display: none !important;
+}

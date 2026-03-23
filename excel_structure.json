@@ -1,0 +1,72 @@
+{
+  "sheetName": "Mi inventario",
+  "range": "A1:Y3000",
+  "merges": [
+    {
+      "s": {
+        "c": 0,
+        "r": 0
+      },
+      "e": {
+        "c": 7,
+        "r": 0
+      }
+    },
+    {
+      "s": {
+        "c": 0,
+        "r": 1
+      },
+      "e": {
+        "c": 7,
+        "r": 1
+      }
+    },
+    {
+      "s": {
+        "c": 0,
+        "r": 2
+      },
+      "e": {
+        "c": 2,
+        "r": 2
+      }
+    },
+    {
+      "s": {
+        "c": 3,
+        "r": 2
+      },
+      "e": {
+        "c": 7,
+        "r": 2
+      }
+    }
+  ],
+  "firstRows": [
+    "Row 0: [0]: Importación Masiva de Inventario",
+    "Row 1: [0]: Instrucciones: Completa esta plantilla con las indicaciones de cada columna. Recuerda que las primeras 3 columnas son obligatorias para importar tus productos sin problemas.",
+    "Row 2: [0]: OBLIGATORIO* | [3]: OPCIONAL",
+    "Row 3: [0]: Ingresa el nombre del producto. | [1]: Ingresa el precio de venta del producto. | [2]: Ingresa la cantidad disponible de tu producto. | [3]: ¿A qué categoría pertenece tu producto? | [4]: ¿Cuánto te cuesta comprar este producto? | [5]: Ingresa el código de barras de tu producto o su código único. | [6]: Escribe la información adicional relacionada con el producto. | [7]:  ¿Quieres mostrar este producto en tu Treinta Shop?",
+    "Row 4: [0]: * Ingresa máx 500 caracteres. | [1]:  *Solo puedes usar números y comas, no puedes usar puntos.  | [2]:  *Solo puedes usar números y comas, no puedes usar puntos.  | [3]: *Escoge una de tu lista de categorías actual o ingresa una nueva. | [4]:  *Solo puedes usar números y comas, no puedes usar puntos.  | [5]: *Asegúrate de no dejar espacios dentro del código. | [6]: * Ingresa máx 500 caracteres. | [7]:  * Si o No.",
+    "Row 5: [0]: Nombre * | [1]: Precio de venta * | [2]: Unidades disponibles * | [3]: Categoría | [4]: Costo del producto | [5]: Código de barras o SKU | [6]: Descripción | [7]: ¿Mostrar este producto en Treinta Shop?",
+    "Row 6: [0]: Taladro Atornillador A Batería 20V | [1]: 380 | [2]: 2 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 297 | [6]: Taladro Atornillador A Batería 20V ION-Litio C/1 Batería Mandril 0,8-10mm Super Select  CDLI20051 | [7]: Si",
+    "Row 7: [0]: Taladro Atornillador A Batería 12V ION-Litio 2Bat. | [1]: 350 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 273 | [6]: Taladro Atornillador A Batería 12V ION-Litio s12 C/2 Batería C/Maleta Plast. Super Select CDLI12208 | [7]: Si",
+    "Row 8: [0]: Sierra Circular 7 1/4\" de 1400W | [1]: 490 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 384 | [6]: Sierra Circular 7 1/4\" 185mmx20mm 1400W Industrial Super Select CS18538 | [7]: Si | [15]: Unidad (und)",
+    "Row 9: [0]: Amoladora Angular 4 1/2\" a BAT. 20V ION-LITIO | [1]: 590 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 308 | [6]: Amoladora Angular 4 1/2\" a BAT. 20V ION-LITIO 9000RPM Motor BL s/ Carbon Y CAR, Super Select CAGLI20157 | [7]: Si | [15]: Kilogramo (kg)",
+    "Row 10: [0]: Amoladora Angular 7\" de 2000W | [1]: 590 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 459 | [6]: Amoladora Angular 7\" 180mm 2000W 8450RPM INSUSTRIAL  AG200018 | [7]: Si | [15]: Gramo (g)",
+    "Row 11: [0]: Pistola Para Pintar 550W con Vaso D/Aluminio de 800ml | [1]: 380 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 261 | [6]: Pistola Para Pintar 550W con Vaso D/Aluminio de 800ml C/Base de Piso INSUSTRIAL SPG5008-2 | [7]: Si | [15]: Miligramo (mg)",
+    "Row 12: [0]: Pistola Para Pintar 550W con Vaso D/Plástico de 800ml | [1]: 350 | [2]: 2 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 201 | [6]: Pistola Para Pintar 550W con Vaso D/Plástico de 800ml C/Base de Piso INSUSTRIAL SPG5008 | [7]: Si | [15]: Onza (oz)",
+    "Row 13: [0]: Taladro Atornillador A Batería 12V ION-Litio | [1]: 410 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 295 | [6]: Taladro Atornillador A Batería 12V ION-Litio s12 C/2 Batería C/Maleta Plast. Super Select CDLI12325 | [7]: Si | [15]: Libra (lb)",
+    "Row 14: [0]: Taladro Percutor 1100W INDUSTRIAL | [1]: 410 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 308 | [6]: Taladro Eléctrico Percutor 1/2\" 13mm 1100W INDUSTRIAL ID11008 | [7]: Si | [15]: Litro (L)",
+    "Row 15: [0]: Sierra Circular 7 1/4\" de 1600W Industrial | [1]: 550 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 439 | [6]: Sierra Circular 7 1/4\" 185mmx20mm 1600W Industrial CS18568 | [7]: Si | [15]: Mililitro (mL)",
+    "Row 16: [0]: Sierra Caladora 570W Madera/Metal C/3 Hojas de Sierra | [1]: 350 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 227 | [6]: Sierra Caladora 570W Madera/Metal C/3 Hojas de Sierra  JS57028 | [7]: Si | [15]: Galón (gal)",
+    "Row 17: [0]: Amoladora 950W de 4\" C/Maleta y 10 DSCO. Galleta de regalo | [1]: 450 | [2]: 2 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 375 | [6]: Amoladora Angular de 4\" 1/2 115mm de 950W 11000RPM C/ Maleta Y 10 Disco Galleta INDUSTRIAL AG8508-1 | [7]: Si | [15]: Metro cúbico (m3)",
+    "Row 18: [0]: Pistola De Calor 350/550°C INDUSTRIAL | [1]: 250 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 148 | [5]: ° | [6]: Pistola De Calor 2000W Nivel de Temperatura 350°C/550°C INDUSTRIAL HG200038 | [7]: Si | [15]: Metro (m)",
+    "Row 19: [0]: Taladro Eléctrico Percutor 550W  | [1]: 230 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 153 | [6]: Taladro Eléctrico Percutor 1/2\" 13mm 550W ID5508 | [7]: Si | [15]: Centímetro (cm)",
+    "Row 20: [0]: Taladro Eléctrico Percutor 680W Super Select | [1]: 250 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 149 | [6]: Taladro Eléctrico Percutor 1/2\" 13mm 680W  Super Select ID6808 | [7]: Si | [15]: Milímetro (mm)",
+    "Row 21: [0]: Pulidora De 7\"  1400W  | [1]: 580 | [2]: 1 | [3]: HERRAMIENTAS ELECTRICAS | [4]: 451 | [6]: Pulidora Angular De 7\" 180mm INDUSTRIAL 1400W 900-3800RPM AP14008 | [7]: Si | [15]: Metro cuadrado (m2)",
+    "Row 24: [15]: Si",
+    "Row 25: [15]: No"
+  ]
+}

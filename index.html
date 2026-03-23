@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ferretería NOA</title>
+  <script>
+    (function() {
+      const theme = localStorage.getItem('theme');
+      if (theme !== 'dark') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root">
+    <!-- Splash screen -->
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f3f4f6;">
+      <img src="/src/assets/logo1.png" alt="Logo" style="max-width: 200px; height: auto; animation: pulse 2s infinite ease-in-out;">
+      <style>
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.05); opacity: 1; }
+          100% { transform: scale(1); opacity: 0.8; }
+        }
+      </style>
+    </div>
+  </div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>
