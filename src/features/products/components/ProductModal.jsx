@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import Select from 'react-select';
 import { useDropzone } from 'react-dropzone';
-import CreatableSelect from 'react-select/creatable';
-import { X, Save, Box, Tag, Image as ImageIcon, Info, Camera, Trash2, RefreshCw } from 'lucide-react';
+import { X, Save, Box, Tag, Image as ImageIcon, Info, Camera, Trash2, RefreshCw, Plus } from 'lucide-react';
 import { createProduct, updateProduct } from '../services/productService';
 import { createCategory } from '../../categories/services/categoryService';
 import Swal from 'sweetalert2';
@@ -138,16 +137,39 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
         }
     }, [compressImage]);
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
         onDrop,
         accept: {
             'image/jpeg': ['.jpg', '.jpeg'],
             'image/png': ['.png'],
-            'image/webp': ['.webp']
+            'image/webp': ['.webp'],
+            'image/heic': ['.heic'],
+            'image/heif': ['.heif']
         },
         maxSize: 10485760, // 10MB to allow selection before compression
         multiple: false
     });
+
+    // Handle file rejections
+    useEffect(() => {
+        if (fileRejections && fileRejections.length > 0) {
+            const rejection = fileRejections[0];
+            let errorMessage = 'Archivo rechazado.';
+            
+            if (rejection.errors[0]?.code === 'file-too-large') {
+                errorMessage = 'La imagen es muy pesada (máximo 10MB).';
+            } else if (rejection.errors[0]?.code === 'file-invalid-type') {
+                errorMessage = 'Formato de imagen no permitido.';
+            }
+
+            Swal.fire({
+                title: 'Error de Imagen',
+                text: errorMessage,
+                icon: 'error',
+                customClass: { popup: 'my-swal-bg', confirmButton: 'my-swal-confirm' }
+            });
+        }
+    }, [fileRejections]);
 
     const removeImage = (e) => {
         e.stopPropagation();
@@ -175,10 +197,12 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
     };
 
     const handleCreateCategory = async (inputValue) => {
+        if (!inputValue || !inputValue.trim()) return;
+        
         setIsSubmitting(true);
         try {
-            const newCategory = await createCategory({ nombre: inputValue });
-
+            const newCategory = await createCategory({ nombre: inputValue.trim() });
+            
             // Refresh categories in parent
             if (onRefreshCategories) {
                 await onRefreshCategories();
@@ -192,7 +216,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
 
             Swal.fire({
                 title: 'Categoría Creada',
-                text: `La categoría "${inputValue}" ha sido creada con éxito.`,
+                text: `La categoría "${newCategory.nombre}" ha sido creada con éxito.`,
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false,
@@ -209,6 +233,32 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleAddCategoryClick = () => {
+        Swal.fire({
+            title: 'Nueva Categoría',
+            input: 'text',
+            inputLabel: 'Nombre de la categoría',
+            inputPlaceholder: 'Escribe el nombre...',
+            showCancelButton: true,
+            confirmButtonText: 'Crear',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'my-swal-bg',
+                confirmButton: 'my-swal-confirm',
+                cancelButton: 'my-swal-cancel'
+            },
+            inputValidator: (value) => {
+                if (!value) {
+                    return '¡El nombre es obligatorio!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                handleCreateCategory(result.value);
+            }
+        });
     };
 
     const adjustStock = (amount) => {
@@ -338,18 +388,29 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
 
                             <div className="form-group" style={{ zIndex: 10 }}>
                                 <label>Categoría *</label>
-                                <CreatableSelect
-                                    classNamePrefix="react-select"
-                                    placeholder="Buscar o crear categoría..."
-                                    isClearable
-                                    isSearchable
-                                    options={categories}
-                                    value={formData.categoria_id}
-                                    onChange={handleCategoryChange}
-                                    onCreateOption={handleCreateCategory}
-                                    formatCreateLabel={(inputValue) => `Crear categoría "${inputValue}"`}
-                                    isDisabled={isSubmitting}
-                                />
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <Select
+                                            classNamePrefix="react-select"
+                                            placeholder="Seleccionar categoría..."
+                                            isClearable
+                                            isSearchable
+                                            options={categories}
+                                            value={formData.categoria_id}
+                                            onChange={handleCategoryChange}
+                                            isDisabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn-secondary"
+                                        onClick={handleAddCategoryClick}
+                                        title="Agregar nueva categoría"
+                                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 0.75rem', height: '38px' }}
+                                    >
+                                        <Plus size={18} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="form-group col-span-2">
@@ -467,7 +528,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
                         <h4 className="modal-section-title"><ImageIcon size={16} /> Fotografía del Producto</h4>
 
                         <div {...getRootProps()} className={`dropzone-container ${isDragActive ? 'active' : ''}`}>
-                            <input {...getInputProps()} />
+                            <input {...getInputProps({ capture: 'environment' })} />
 
                             {imagePreview ? (
                                 <div className="dropzone-preview">
