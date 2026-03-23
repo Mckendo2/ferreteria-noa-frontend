@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import Select from 'react-select';
 import { useDropzone } from 'react-dropzone';
+import CreatableSelect from 'react-select/creatable';
 import { X, Save, Box, Tag, Image as ImageIcon, Info, Camera, Trash2, RefreshCw } from 'lucide-react';
 import { createProduct, updateProduct } from '../services/productService';
+import { createCategory } from '../../categories/services/categoryService';
 import Swal from 'sweetalert2';
 
-const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) => {
+const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories, product = null }) => {
     const isEditing = !!product;
 
     const getInitialFormData = () => ({
@@ -24,6 +26,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
 
     const [formData, setFormData] = useState(getInitialFormData());
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
@@ -60,13 +63,80 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
         }
     }, [isOpen, product, categories]);
 
-    const onDrop = useCallback(acceptedFiles => {
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Maximum dimensions
+                    const MAX_WIDTH = 1200;
+                    const MAX_HEIGHT = 1200;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG with 0.7 quality
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            reject(new Error('Canvas to Blob failed'));
+                        }
+                    }, 'image/jpeg', 0.7);
+                };
+                img.onerror = (err) => reject(err);
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    };
+
+    const onDrop = useCallback(async (acceptedFiles) => {
         if (acceptedFiles && acceptedFiles.length > 0) {
-            const file = acceptedFiles[0];
+            let file = acceptedFiles[0];
+
+            // If file is larger than 1MB, compress it
+            if (file.size > 1024 * 1024) {
+                setIsCompressing(true);
+                try {
+                    const compressedFile = await compressImage(file);
+                    file = compressedFile;
+                } catch (error) {
+                    console.error("Compression error:", error);
+                    // Fallback to original file if compression fails
+                } finally {
+                    setIsCompressing(false);
+                }
+            }
+
             setFormData(prev => ({ ...prev, imagen: file }));
             setImagePreview(URL.createObjectURL(file));
         }
-    }, []);
+    }, [compressImage]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -75,7 +145,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
             'image/png': ['.png'],
             'image/webp': ['.webp']
         },
-        maxSize: 2097152,
+        maxSize: 10485760, // 10MB to allow selection before compression
         multiple: false
     });
 
@@ -89,9 +159,9 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({ 
-            ...prev, 
-            [name]: type === 'checkbox' ? checked : value 
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
         }));
     };
 
@@ -104,6 +174,43 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
         setFormData(prev => ({ ...prev, codigo_barras: randomCode }));
     };
 
+    const handleCreateCategory = async (inputValue) => {
+        setIsSubmitting(true);
+        try {
+            const newCategory = await createCategory({ nombre: inputValue });
+
+            // Refresh categories in parent
+            if (onRefreshCategories) {
+                await onRefreshCategories();
+            }
+
+            // Set the new category in formData
+            setFormData(prev => ({
+                ...prev,
+                categoria_id: { value: newCategory.id, label: newCategory.nombre }
+            }));
+
+            Swal.fire({
+                title: 'Categoría Creada',
+                text: `La categoría "${inputValue}" ha sido creada con éxito.`,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                customClass: { popup: 'my-swal-bg' }
+            });
+        } catch (error) {
+            console.error('Error creating category:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo crear la categoría.',
+                icon: 'error',
+                customClass: { popup: 'my-swal-bg', confirmButton: 'my-swal-confirm' }
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const adjustStock = (amount) => {
         setFormData(prev => {
             const currentStock = parseInt(prev.stock || 0);
@@ -114,7 +221,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!formData.nombre || !formData.categoria_id || formData.precio_compra === '' || formData.precio_venta === '' || formData.stock === '') {
             Swal.fire({
                 title: 'Campos Incompletos',
@@ -137,7 +244,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
         formDataToSend.append('stock', formData.stock);
         formDataToSend.append('stock_minimo', formData.stock_minimo ? formData.stock_minimo : 5);
         formDataToSend.append('activo', formData.activo ? 1 : 0);
-        
+
         // Only append image if a new file was selected
         if (formData.imagen && formData.imagen instanceof File) {
             formDataToSend.append('imagen', formData.imagen);
@@ -187,39 +294,39 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
                     <h3>{isEditing ? 'Editar Producto' : 'Nuevo Producto'}</h3>
                     <button type="button" className="icon-btn" onClick={onClose}><X size={20} /></button>
                 </div>
-                
-                <form onSubmit={handleSubmit} className="modal-body" style={{ padding: '2rem' }}>
-                    
+
+                <form onSubmit={handleSubmit} className="modal-body">
+
                     {/* SECTION 1: Basic Information */}
                     <div className="modal-section">
                         <h4 className="modal-section-title"><Box size={16} /> Información Básica</h4>
                         <div className="grid-2-col">
                             <div className="form-group col-span-2">
                                 <label>Nombre del Producto *</label>
-                                <input 
-                                    type="text" 
-                                    name="nombre" 
-                                    value={formData.nombre} 
-                                    onChange={handleChange} 
+                                <input
+                                    type="text"
+                                    name="nombre"
+                                    value={formData.nombre}
+                                    onChange={handleChange}
                                     placeholder="Ej. Taladro Percutor Dewalt 20V"
                                     required
                                     autoFocus
                                 />
                             </div>
-                            
+
                             <div className="form-group">
                                 <label>Código de Barras</label>
                                 <div className="input-with-action">
-                                    <input 
-                                        type="text" 
-                                        name="codigo_barras" 
-                                        value={formData.codigo_barras} 
-                                        onChange={handleChange} 
+                                    <input
+                                        type="text"
+                                        name="codigo_barras"
+                                        value={formData.codigo_barras}
+                                        onChange={handleChange}
                                         placeholder="Ej. 7501066000000"
                                     />
-                                    <button 
-                                        type="button" 
-                                        className="btn-secondary" 
+                                    <button
+                                        type="button"
+                                        className="btn-secondary"
                                         onClick={generateBarcode}
                                         title="Generar código aleatorio"
                                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 0.75rem' }}
@@ -231,24 +338,27 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
 
                             <div className="form-group" style={{ zIndex: 10 }}>
                                 <label>Categoría *</label>
-                                <Select
+                                <CreatableSelect
                                     classNamePrefix="react-select"
-                                    placeholder="Buscar categoría..."
+                                    placeholder="Buscar o crear categoría..."
                                     isClearable
                                     isSearchable
                                     options={categories}
                                     value={formData.categoria_id}
                                     onChange={handleCategoryChange}
+                                    onCreateOption={handleCreateCategory}
+                                    formatCreateLabel={(inputValue) => `Crear categoría "${inputValue}"`}
+                                    isDisabled={isSubmitting}
                                 />
                             </div>
 
                             <div className="form-group col-span-2">
                                 <label>Descripción del Producto</label>
-                                <textarea 
-                                    name="descripcion" 
+                                <textarea
+                                    name="descripcion"
                                     className="form-textarea"
-                                    value={formData.descripcion} 
-                                    onChange={handleChange} 
+                                    value={formData.descripcion}
+                                    onChange={handleChange}
                                     placeholder="Detalles adicionales, uso, características..."
                                     rows="3"
                                     maxLength={500}
@@ -268,13 +378,13 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
                                 <label>Precio Compra *</label>
                                 <div className="input-with-addon">
                                     <span className="input-addon">Bs</span>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         step="0.01"
                                         min="0"
-                                        name="precio_compra" 
-                                        value={formData.precio_compra} 
-                                        onChange={handleChange} 
+                                        name="precio_compra"
+                                        value={formData.precio_compra}
+                                        onChange={handleChange}
                                         required
                                         placeholder="0.00"
                                     />
@@ -285,13 +395,13 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
                                 <label>Precio Venta *</label>
                                 <div className="input-with-addon">
                                     <span className="input-addon">Bs</span>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         step="0.01"
                                         min="0"
-                                        name="precio_venta" 
-                                        value={formData.precio_venta} 
-                                        onChange={handleChange} 
+                                        name="precio_venta"
+                                        value={formData.precio_venta}
+                                        onChange={handleChange}
                                         required
                                         placeholder="0.00"
                                     />
@@ -301,9 +411,9 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
                             <div className="form-group">
                                 <label>Estado del Producto</label>
                                 <label className="switch-container" title="Si está inactivo, no aparecerá para ventas.">
-                                    <input 
-                                        type="checkbox" 
-                                        name="activo" 
+                                    <input
+                                        type="checkbox"
+                                        name="activo"
                                         checked={formData.activo}
                                         onChange={handleChange}
                                         style={{ display: 'none' }}
@@ -318,12 +428,12 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
                             <div className="form-group">
                                 <label>{isEditing ? 'Stock Actual *' : 'Stock Inicial *'}</label>
                                 <div className="input-with-action">
-                                    <input 
-                                        type="number" 
-                                        name="stock" 
+                                    <input
+                                        type="number"
+                                        name="stock"
                                         min="0"
-                                        value={formData.stock} 
-                                        onChange={handleChange} 
+                                        value={formData.stock}
+                                        onChange={handleChange}
                                         required
                                         placeholder="0"
                                         style={{ textAlign: 'center' }}
@@ -337,15 +447,15 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
 
                             <div className="form-group">
                                 <label title="Nivel de alerta en inventario">
-                                    Stock Mínimo 
+                                    Stock Mínimo
                                     <Info size={12} className="tooltip-icon" />
                                 </label>
-                                <input 
-                                    type="number" 
-                                    name="stock_minimo" 
+                                <input
+                                    type="number"
+                                    name="stock_minimo"
                                     min="0"
-                                    value={formData.stock_minimo} 
-                                    onChange={handleChange} 
+                                    value={formData.stock_minimo}
+                                    onChange={handleChange}
                                     placeholder="5 (por defecto)"
                                 />
                             </div>
@@ -355,10 +465,10 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
                     {/* SECTION 3: Image */}
                     <div className="modal-section" style={{ paddingBottom: '2rem' }}>
                         <h4 className="modal-section-title"><ImageIcon size={16} /> Fotografía del Producto</h4>
-                        
+
                         <div {...getRootProps()} className={`dropzone-container ${isDragActive ? 'active' : ''}`}>
                             <input {...getInputProps()} />
-                            
+
                             {imagePreview ? (
                                 <div className="dropzone-preview">
                                     <img src={imagePreview} alt="Preview" />
@@ -378,8 +488,13 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, product = null }) =
                                         Arrastra y suelta tu imagen aquí
                                     </p>
                                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                                        Formatos soportados: PNG, JPG, WEBP (Máx. 2MB)
+                                        Formatos soportados: PNG, JPG, WEBP (Se auto-ajustan fotos grandes)
                                     </p>
+                                    {isCompressing && (
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--primary-blue)', marginBottom: '1rem', fontWeight: 600 }}>
+                                            Procesando imagen...
+                                        </p>
+                                    )}
                                     <button type="button" className="btn-secondary">
                                         Explorar archivos
                                     </button>

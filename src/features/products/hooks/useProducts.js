@@ -118,6 +118,7 @@ const useProducts = () => {
         hasActiveFilters,
         handleClearFilters,
         fetchProducts,
+        fetchCategories,
     };
 };
 

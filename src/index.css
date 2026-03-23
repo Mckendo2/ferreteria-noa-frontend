@@ -1236,6 +1236,28 @@ body.light-mode .btn-secondary:hover {
   .filter-group {
     width: 100%;
   }
+
+  /* Responsive Grids for Modals */
+  .grid-2-col, .grid-3-col {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .col-span-2, .col-span-3 {
+    grid-column: span 1 !important;
+  }
+
+  .modal-section {
+    padding: 1rem !important;
+  }
+
+  .modal-content.large {
+    max-height: 95vh;
+  }
+
+  .modal-body {
+    padding: 1rem !important;
+  }
 }
 
 /* --- Product Modal specific styles --- */

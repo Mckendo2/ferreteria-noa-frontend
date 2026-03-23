@@ -29,6 +29,7 @@ const ProductsPage = () => {
         hasActiveFilters,
         handleClearFilters,
         fetchProducts,
+        fetchCategories,
     } = useProducts();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -493,6 +494,7 @@ const ProductsPage = () => {
                 isOpen={isModalOpen} 
                 onClose={handleCloseModal} 
                 onSave={fetchProducts} 
+                onRefreshCategories={fetchCategories}
                 categories={categories}
                 product={editingProduct}
             />
