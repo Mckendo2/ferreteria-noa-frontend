@@ -11,7 +11,7 @@ const Hero = () => {
             
             <div className="hero-content">
                 <h1 className="hero-title">
-                    TODO PARA TU <br /><span>OBRA Y HOGAR</span>
+                    TODOs PARA TU <br /><span>OBRAs Y HOGAR</span>
                 </h1>
                 <p className="hero-description">
                     Desde el tornillo más pequeño hasta la maquinaria más pesada. 
