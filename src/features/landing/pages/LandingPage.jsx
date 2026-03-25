@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -9,11 +10,14 @@ import Location from '../components/Location';
 import Footer from '../components/Footer';
 
 const LandingPage = () => {
-    const { logout } = useAuth();
+    const { user, loading } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        logout();
-    }, []); // Only logout once on mount
+        if (!loading && user) {
+            navigate('/dashboard');
+        }
+    }, [user, loading, navigate]);
 
     return (
         <div className="landing-page">
@@ -23,7 +27,7 @@ const LandingPage = () => {
             <About />
             <Categories />
             <Location />
-            
+
             <Footer />
         </div>
     );

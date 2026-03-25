@@ -10,8 +10,10 @@ const LoginPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        logout();
-    }, []); // Run only once on mount
+        if (user) {
+            navigate(getHomeRoute(user));
+        }
+    }, [user, navigate, getHomeRoute]);
 
 
 
@@ -36,22 +38,22 @@ const LoginPage = () => {
                 <h2>Iniciar Sesión</h2>
                 <div className="form-group">
                     <label>Email</label>
-                    <input 
-                        type="email" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         placeholder="tu@email.com"
-                        required 
+                        required
                     />
                 </div>
                 <div className="form-group">
                     <label>Contraseña</label>
-                    <input 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         placeholder="********"
-                        required 
+                        required
                     />
                 </div>
                 <button type="submit">Entrar</button>
