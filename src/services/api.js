@@ -1,19 +1,23 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+    const envUrl = import.meta.env.VITE_API_URL || 'https://api.ferreterianoa.com';
+    return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+};
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'https://api.ferreterianoa.com/api',
+    baseURL: getBaseURL(),
 });
 
-// Debug interceptor to trace requests in console
+// Debug interceptor for tracing requests in browser console
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        console.error('API Error:', {
-            url: error.config?.url,
-            method: error.config?.method,
-            status: error.response?.status,
-            data: error.response?.data
-        });
+        console.error('--- API Connection Debug ---');
+        console.error('URL Request:', error.config?.url);
+        console.error('Full BaseURL:', error.config?.baseURL);
+        console.error('Status Code:', error.response?.status);
+        console.error('Response Data:', error.response?.data);
         return Promise.reject(error);
     }
 );
