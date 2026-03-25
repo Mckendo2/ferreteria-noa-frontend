@@ -63,7 +63,8 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
                 setImagePreview(null);
             }
         }
-    }, [isOpen, product, categories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, product]);
 
     const compressImage = (file) => {
         return new Promise((resolve, reject) => {
