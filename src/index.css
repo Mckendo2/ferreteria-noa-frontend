@@ -2268,21 +2268,24 @@ textarea.form-textarea:focus {
   .sales-page {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 80px);
-    gap: 1rem;
-    margin-bottom: 0;
+    min-height: calc(100vh - 80px);
+    height: auto;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   .sales-products-panel {
-    flex: 1;
-    min-height: 0;
+    flex: none;
+    height: 65vh;
+    min-height: 400px;
     max-height: none;
   }
 
   .sales-cart-panel {
-    flex-shrink: 0;
-    height: 45vh;
-    max-height: none;
+    flex: none;
+    height: auto;
+    min-height: 400px;
+    max-height: 60vh;
   }
 }
 
