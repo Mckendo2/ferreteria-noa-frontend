@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import Select from 'react-select';
 import { useDropzone } from 'react-dropzone';
@@ -27,6 +27,8 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCompressing, setIsCompressing] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
+    const fileInputRef = useRef(null);
+    const cameraInputRef = useRef(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -147,7 +149,8 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
             'image/heif': ['.heif']
         },
         maxSize: 10485760, // 10MB to allow selection before compression
-        multiple: false
+        multiple: false,
+        noClick: true
     });
 
     // Handle file rejections
@@ -527,8 +530,20 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
                     <div className="modal-section" style={{ paddingBottom: '2rem' }}>
                         <h4 className="modal-section-title"><ImageIcon size={16} /> Fotografía del Producto</h4>
 
-                        <div {...getRootProps()} className={`dropzone-container ${isDragActive ? 'active' : ''}`}>
-                            <input {...getInputProps({ capture: 'environment' })} />
+                        <div {...getRootProps()} className={`dropzone-container ${isDragActive ? 'active' : ''}`} style={{ cursor: 'default' }}>
+                            <input {...getInputProps()} ref={fileInputRef} />
+                            <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                style={{ display: 'none' }}
+                                ref={cameraInputRef}
+                                onChange={async (e) => {
+                                    if (e.target.files && e.target.files.length > 0) {
+                                        await onDrop(Array.from(e.target.files));
+                                    }
+                                }}
+                            />
 
                             {imagePreview ? (
                                 <div className="dropzone-preview">
@@ -556,9 +571,24 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
                                             Procesando imagen...
                                         </p>
                                     )}
-                                    <button type="button" className="btn-secondary">
-                                        Explorar archivos
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                        >
+                                            <ImageIcon size={18} /> Galería
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => cameraInputRef.current?.click()}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: 'var(--primary-blue)', color: 'var(--primary-blue)' }}
+                                        >
+                                            <Camera size={18} /> Cámara
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>
