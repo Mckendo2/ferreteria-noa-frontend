@@ -2270,22 +2270,22 @@ textarea.form-textarea:focus {
     flex-direction: column;
     min-height: calc(100vh - 80px);
     height: auto;
-    gap: 1.5rem;
+    gap: 1rem;
     margin-bottom: 2rem;
   }
 
   .sales-products-panel {
     flex: none;
-    height: 65vh;
-    min-height: 400px;
+    height: 75vh;
+    min-height: 450px;
     max-height: none;
   }
 
   .sales-cart-panel {
     flex: none;
     height: auto;
-    min-height: 400px;
-    max-height: 60vh;
+    min-height: 350px;
+    max-height: 55vh;
   }
 }
 
@@ -2293,34 +2293,83 @@ textarea.form-textarea:focus {
   .sales-products-header {
     flex-direction: column;
     align-items: stretch;
-    padding: 1rem;
+    padding: 0.6rem 0.75rem;
+    gap: 0.4rem;
   }
 
   .sales-products-header h2 {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    margin-bottom: 0;
   }
 
   .sales-search-wrapper {
     max-width: none;
-    margin-top: 0.5rem;
+    margin-top: 0;
+  }
+
+  .sales-search-wrapper input {
+    padding: 0.4rem 2rem 0.4rem 2.25rem;
+    font-size: 0.8rem;
+  }
+
+  .sales-products-header .filters-bar {
+    padding: 0.4rem 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    gap: 0.4rem;
+    border: none;
+    background: transparent;
+  }
+
+  .sales-products-header .filter-group {
+    min-width: 0;
+  }
+
+  .sales-products-header .react-select__control {
+    min-height: 32px !important;
+    font-size: 0.78rem;
+  }
+
+  .sales-products-header .react-select__value-container {
+    padding: 0 6px !important;
+  }
+
+  .sales-products-header .react-select__indicator {
+    padding: 4px !important;
+  }
+
+  .sales-products-header .active-filters {
+    margin-bottom: 0;
+    margin-top: 0;
+    gap: 0.3rem;
+  }
+
+  .sales-products-header .results-count {
+    font-size: 0.75rem;
   }
 
   .sales-products-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .sales-card-image {
-    height: 95px;
+    height: 100px;
   }
 
   .sales-card-info {
-    padding: 0.5rem;
+    padding: 0.4rem 0.5rem;
   }
 
   .sales-card-name {
     font-size: 0.75rem;
+    min-height: 2em;
+  }
+
+  .sales-card-price {
+    font-size: 0.82rem;
+    padding-top: 0.15rem;
   }
 }
 
