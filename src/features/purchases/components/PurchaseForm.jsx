@@ -266,7 +266,7 @@ const PurchaseForm = ({ onCancel, onSuccess }) => {
                                     <div className="sales-cart-item-image">
                                         {item.imagen ? (
                                             <img
-                                                src={item.imagen.startsWith('http') ? item.imagen : `${API_BASE}${item.imagen}`}
+                                                src={item.imagen.startsWith('http') ? item.imagen : `${BASE_URL}${item.imagen}`}
                                                 alt={item.nombre}
                                             />
                                         ) : <div className="sales-cart-item-placeholder"><ImageIcon size={16} /></div>}

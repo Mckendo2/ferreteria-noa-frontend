@@ -505,10 +505,10 @@ const SalesPage = () => {
                                     key={item.producto_id} 
                                     className={`sales-cart-item ${location.state?.targetProductId === item.producto_id ? 'highlight-edit' : ''}`}
                                 >
-                                    <div className="sales-cart-item-image" onClick={() => item.imagen && setPreviewImage({ src: item.imagen.startsWith('http') ? item.imagen : `${API_BASE}${item.imagen}`, nombre: item.nombre })} style={{ cursor: item.imagen ? 'pointer' : 'default' }}>
+                                    <div className="sales-cart-item-image" onClick={() => item.imagen && setPreviewImage({ src: item.imagen.startsWith('http') ? item.imagen : `${BASE_URL}${item.imagen}`, nombre: item.nombre })} style={{ cursor: item.imagen ? 'pointer' : 'default' }}>
                                         {item.imagen ? (
                                             <img
-                                                src={item.imagen.startsWith('http') ? item.imagen : `${API_BASE}${item.imagen}`}
+                                                src={item.imagen.startsWith('http') ? item.imagen : `${BASE_URL}${item.imagen}`}
                                                 alt={item.nombre}
                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                             />
