@@ -3,6 +3,7 @@ import Select from 'react-select';
 import { Plus, Filter, X, Box, Save, Image as ImageIcon, Eye, Edit, Trash2, DollarSign, Package, Download, FileSpreadsheet } from 'lucide-react';
 import useProducts from '../hooks/useProducts';
 import { updateProduct, importInventory } from '../services/productService';
+import { BASE_URL } from '../../../services/api';
 import Swal from 'sweetalert2';
 import ProductModal from '../components/ProductModal';
 import ProductDetailModal from '../components/ProductDetailModal';
@@ -398,7 +399,7 @@ const ProductsPage = () => {
                                         <td style={{ padding: '1rem' }}>
                                             {product.imagen ? (
                                                 <img 
-                                                    src={product.imagen.startsWith('http') ? product.imagen : `http://localhost:5000${product.imagen}`} 
+                                                    src={product.imagen.startsWith('http') ? product.imagen : `${BASE_URL}${product.imagen}`} 
                                                     alt={product.nombre}
                                                     style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }}
                                                     onError={(e) => { e.target.style.display = 'none'; }}

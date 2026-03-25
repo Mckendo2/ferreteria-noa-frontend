@@ -8,8 +8,8 @@ import { getClients } from '../../clients/services/clientService';
 import Swal from 'sweetalert2';
 import { jsPDF } from 'jspdf';
 import { generateSalePDF } from '../utils/salePdfGenerator';
+import { BASE_URL } from '../../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 const SalesPage = () => {
     const {
@@ -448,7 +448,7 @@ const SalesPage = () => {
                                     <div className="sales-card-image">
                                         {product.imagen ? (
                                             <img
-                                                src={product.imagen.startsWith('http') ? product.imagen : `${API_BASE}${product.imagen}`}
+                                                src={product.imagen.startsWith('http') ? product.imagen : `${BASE_URL}${product.imagen}`}
                                                 alt={product.nombre}
                                                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                                             />

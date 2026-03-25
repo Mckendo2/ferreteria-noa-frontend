@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { X, Package, Tag, BarChart3, Calendar, Image as ImageIcon } from 'lucide-react';
+import { BASE_URL } from '../../../services/api';
 
 const ProductDetailModal = ({ isOpen, onClose, product, categoryName }) => {
     if (!isOpen || !product) return null;
@@ -41,7 +42,7 @@ const ProductDetailModal = ({ isOpen, onClose, product, categoryName }) => {
                         }}>
                             {product.imagen ? (
                                 <img
-                                    src={product.imagen.startsWith('http') ? product.imagen : `http://localhost:5000${product.imagen}`}
+                                    src={product.imagen.startsWith('http') ? product.imagen : `${BASE_URL}${product.imagen}`}
                                     alt={product.nombre}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     onError={(e) => {

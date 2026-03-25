@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { X, Save, Box, Tag, Image as ImageIcon, Info, Camera, Trash2, RefreshCw, Plus } from 'lucide-react';
 import { createProduct, updateProduct } from '../services/productService';
 import { createCategory } from '../../categories/services/categoryService';
+import { BASE_URL } from '../../../services/api';
 import Swal from 'sweetalert2';
 
 const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories, product = null }) => {
@@ -51,7 +52,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
                 if (product.imagen) {
                     const imgUrl = product.imagen.startsWith('http')
                         ? product.imagen
-                        : `http://localhost:5000${product.imagen}`;
+                        : `${BASE_URL}${product.imagen}`;
                     setImagePreview(imgUrl);
                 } else {
                     setImagePreview(null);

@@ -1,6 +1,6 @@
-import axios from 'axios';
+import api, { API_URL as BASE_API_URL } from '../../../services/api';
 
-const API_URL = 'http://localhost:5000/api/reportes';
+const API_URL = `${BASE_API_URL}/reportes`;
 
 const reportService = {
     getSales: async (startDate, endDate) => {

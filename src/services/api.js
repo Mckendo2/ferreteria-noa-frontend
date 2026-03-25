@@ -1,12 +1,16 @@
 import axios from 'axios';
 
-const getBaseURL = () => {
-    const envUrl = import.meta.env.VITE_API_URL || 'https://api.ferreterianoa.com';
-    return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+const getRawURL = () => {
+    return import.meta.env.VITE_API_URL || 'https://api.ferreterianoa.com';
 };
 
+const rawURL = getRawURL();
+// Remove trailing slash and /api suffix to get the root URL for images
+export const BASE_URL = rawURL.replace(/\/api\/?$/, '').replace(/\/$/, '');
+export const API_URL = `${BASE_URL}/api`;
+
 const api = axios.create({
-    baseURL: getBaseURL(),
+    baseURL: API_URL,
 });
 
 // Debug interceptor for tracing requests in browser console

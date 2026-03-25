@@ -5,8 +5,8 @@ import usePurchases from '../hooks/usePurchases';
 import { getProviders } from '../../providers/services/providerService';
 import { generatePurchasePDF } from '../services/purchasePdfService';
 import Swal from 'sweetalert2';
+import { BASE_URL } from '../../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 const PurchaseForm = ({ onCancel, onSuccess }) => {
     const {
@@ -199,7 +199,7 @@ const PurchaseForm = ({ onCancel, onSuccess }) => {
                                     <div className="sales-card-image">
                                         {product.imagen ? (
                                             <img
-                                                src={product.imagen.startsWith('http') ? product.imagen : `${API_BASE}${product.imagen}`}
+                                                src={product.imagen.startsWith('http') ? product.imagen : `${BASE_URL}${product.imagen}`}
                                                 alt={product.nombre}
                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                             />

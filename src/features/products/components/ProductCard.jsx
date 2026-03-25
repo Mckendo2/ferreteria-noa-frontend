@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
+import { BASE_URL } from '../../../services/api';
 
 const ProductCard = ({ product, categoryName, onDelete, onEdit, onView }) => {
     const isLowStock = product.stock <= product.stock_minimo;
@@ -21,7 +22,7 @@ const ProductCard = ({ product, categoryName, onDelete, onEdit, onView }) => {
                 
                 {product.imagen ? (
                     <img 
-                        src={product.imagen.startsWith('http') ? product.imagen : `http://localhost:5000${product.imagen}`} 
+                        src={product.imagen.startsWith('http') ? product.imagen : `${BASE_URL}${product.imagen}`} 
                         alt={product.nombre}
                         loading="lazy"
                         onError={(e) => { 
