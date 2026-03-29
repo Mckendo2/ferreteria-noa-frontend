@@ -4,7 +4,7 @@ const API_URL = `${BASE_API_URL}/reportes`;
 
 const reportService = {
     getSales: async (startDate, endDate) => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const response = await axios.get(`${API_URL}/sales`, {
             params: { startDate, endDate },
             headers: { Authorization: `Bearer ${token}` }
@@ -13,7 +13,7 @@ const reportService = {
     },
 
     getLowStock: async () => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const response = await axios.get(`${API_URL}/low-stock`, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -21,7 +21,7 @@ const reportService = {
     },
 
     getInventoryValue: async () => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const response = await axios.get(`${API_URL}/inventory-value`, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -29,7 +29,7 @@ const reportService = {
     },
 
     getCredits: async () => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const response = await axios.get(`${API_URL}/credits`, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -37,7 +37,7 @@ const reportService = {
     },
 
     getExpensesPurchases: async (startDate, endDate) => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const response = await axios.get(`${API_URL}/expenses-purchases`, {
             params: { startDate, endDate },
             headers: { Authorization: `Bearer ${token}` }
@@ -46,7 +46,7 @@ const reportService = {
     },
 
     getTopProducts: async (startDate, endDate, limit = 10) => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const response = await axios.get(`${API_URL}/top-products`, {
             params: { startDate, endDate, limit },
             headers: { Authorization: `Bearer ${token}` }
@@ -55,7 +55,7 @@ const reportService = {
     },
 
     getTopCustomers: async (startDate, endDate, limit = 10) => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const response = await axios.get(`${API_URL}/top-customers`, {
             params: { startDate, endDate, limit },
             headers: { Authorization: `Bearer ${token}` }

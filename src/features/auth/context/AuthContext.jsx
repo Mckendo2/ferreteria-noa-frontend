@@ -8,15 +8,15 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
+        const storedUser = sessionStorage.getItem('user');
+        const token = sessionStorage.getItem('token');
         if (storedUser && token && storedUser !== 'undefined') {
             try {
                 setUser(JSON.parse(storedUser));
             } catch (error) {
                 console.error('Error parsing stored user:', error);
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('token');
             }
         }
         setLoading(false);
@@ -24,15 +24,15 @@ export const AuthProvider = ({ children }) => {
 
     const login = useCallback(async (email, password) => {
         const { token, user: userData } = await loginUser(email, password);
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(userData));
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         return userData;
     }, []);
 
     const logout = useCallback(() => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         setUser(null);
     }, []);
 
