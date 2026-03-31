@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import Select from 'react-select';
-import { Plus, Filter, X, Box, Save, Image as ImageIcon, Eye, Edit, Trash2, DollarSign, Package, Download, FileSpreadsheet } from 'lucide-react';
+import { Plus, Filter, X, Box, Save, Image as ImageIcon, Eye, Edit, Trash2, DollarSign, Package, Download, FileSpreadsheet, Layers } from 'lucide-react';
 import useProducts from '../hooks/useProducts';
 import { updateProduct, importInventory } from '../services/productService';
 import { BASE_URL } from '../../../services/api';
@@ -191,6 +191,7 @@ const ProductsPage = () => {
         const stock = parseInt(curr.stock) || 0;
         return acc + (compra * stock);
     }, 0);
+    const totalStockUnits = allProducts.reduce((acc, curr) => acc + (parseInt(curr.stock) || 0), 0);
 
     return (
         <div className="module-container">
@@ -294,6 +295,15 @@ const ProductsPage = () => {
                     <div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Costo Total Inventario</div>
                         <div style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 700 }}>Bs {totalInventoryCost.toFixed(2)}</div>
+                    </div>
+                </div>
+                <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                    <div style={{ background: 'rgba(255, 152, 0, 0.1)', padding: '1rem', borderRadius: '12px', color: '#FF9800' }}>
+                        <Layers size={24} />
+                    </div>
+                    <div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Existencias en Stock</div>
+                        <div style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 700 }}>{totalStockUnits.toLocaleString()}</div>
                     </div>
                 </div>
             </div>
