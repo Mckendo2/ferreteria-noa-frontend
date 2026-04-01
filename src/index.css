@@ -471,6 +471,74 @@ body.light-mode .sidebar:hover::-webkit-scrollbar-thumb {
   color: var(--text-primary);
 }
 
+/* Sidebar Drag & Drop */
+.sidebar-draggable-item {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border-radius: 6px;
+  transition: transform 0.2s ease, opacity 0.2s ease, background 0.15s ease;
+}
+
+.sidebar-draggable-item a {
+  flex: 1;
+  min-width: 0;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  min-width: 22px;
+  cursor: grab;
+  color: transparent;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  border-radius: 4px 0 0 4px;
+  flex-shrink: 0;
+  touch-action: none;
+}
+
+.sidebar-draggable-item:hover .drag-handle {
+  color: var(--text-secondary);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.sidebar-draggable-item.drag-source {
+  opacity: 0.35;
+  transform: scale(0.97);
+}
+
+.sidebar-draggable-item.drag-over {
+  background: rgba(0, 112, 243, 0.08);
+  box-shadow: inset 0 -2px 0 0 var(--primary-blue, #0070F3);
+}
+
+body.light-mode .sidebar-draggable-item.drag-over {
+  background: rgba(0, 112, 243, 0.06);
+}
+
+.sidebar.collapsed .drag-handle {
+  display: none;
+}
+
+/* Ghost element for touch drag */
+.drag-ghost {
+  border-radius: 8px !important;
+  backdrop-filter: blur(8px);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (max-width: 768px) {
+  .drag-handle {
+    color: var(--text-secondary);
+    opacity: 0.4;
+  }
+}
+
 /* Dashboard & Cards */
 .page-header {
   margin-bottom: 2rem;
