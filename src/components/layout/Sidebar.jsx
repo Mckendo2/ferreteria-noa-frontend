@@ -22,22 +22,24 @@ import {
     GripVertical
 } from 'lucide-react';
 
-const STORAGE_KEY = 'sidebar_order';
 const LONG_PRESS_MS = 1200;
 const MOVE_THRESHOLD = 10;
 
 const Sidebar = ({ isOpen }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { hasPermission } = useAuth();
+    const { user, hasPermission } = useAuth();
     const [openDropdown, setOpenDropdown] = useState(null);
+
+    // Per-user storage key
+    const storageKey = user ? `sidebar_order_${user.id}` : 'sidebar_order';
 
     // Drag visual state
     const [dragIndex, setDragIndex] = useState(null);
     const [overIndex, setOverIndex] = useState(null);
     const [touchDragActive, setTouchDragActive] = useState(false);
 
-    // Refs for event handlers (avoid stale closures)
+    // Refs for native event handlers (no stale closures)
     const dragIndexRef = useRef(null);
     const overIndexRef = useRef(null);
     const touchDragActiveRef = useRef(false);
@@ -46,11 +48,11 @@ const Sidebar = ({ isOpen }) => {
     const ghostRef = useRef(null);
     const longPressTimer = useRef(null);
     const touchOrigin = useRef({ x: 0, y: 0 });
-    const rafRef = useRef(null);
-    const cachedRects = useRef([]);
+    const cachedMidpoints = useRef([]); // midpoints for closest-item detection
     const reorderRef = useRef(null);
     const ghostInitY = useRef(0);
-    const ghostHeightRef = useRef(0);
+    const ghostHeight = useRef(0);
+    const orderedItemsRef = useRef(null);
 
     const allMenuItems = [
         { id: 'inicio', path: '/dashboard', name: 'Inicio', icon: <Home size={18} />, permission: null },
@@ -82,7 +84,7 @@ const Sidebar = ({ isOpen }) => {
 
     const getSavedOrder = () => {
         try {
-            const saved = localStorage.getItem(STORAGE_KEY);
+            const saved = localStorage.getItem(storageKey);
             if (saved) {
                 const orderIds = JSON.parse(saved);
                 const itemMap = {};
@@ -102,14 +104,16 @@ const Sidebar = ({ isOpen }) => {
     };
 
     const [orderedItems, setOrderedItems] = useState(getSavedOrder);
+    orderedItemsRef.current = orderedItems;
 
     const visibleItems = orderedItems.filter(item =>
         item.permission === null || hasPermission(item.permission)
     );
 
+    // Persist order per-user
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(orderedItems.map(i => i.id)));
-    }, [orderedItems]);
+        localStorage.setItem(storageKey, JSON.stringify(orderedItems.map(i => i.id)));
+    }, [orderedItems, storageKey]);
 
     const isDropdownActive = (item) => {
         if (!item.isDropdown) return false;
@@ -136,6 +140,7 @@ const Sidebar = ({ isOpen }) => {
             );
             const fromItem = vis[fromIdx];
             const toItem = vis[toIdx];
+            if (!fromItem || !toItem) return prev;
             const fullFromIdx = prev.indexOf(fromItem);
             const fullToIdx = prev.indexOf(toItem);
             if (fullFromIdx === -1 || fullToIdx === -1) return prev;
@@ -151,6 +156,22 @@ const Sidebar = ({ isOpen }) => {
     // Sync ref + state helpers
     const setDragIdx = (val) => { dragIndexRef.current = val; setDragIndex(val); };
     const setOverIdx = (val) => { overIndexRef.current = val; setOverIndex(val); };
+
+    // ─── Find closest item by Y position (robust, works even in gaps) ───
+    const findClosestItem = (touchY) => {
+        const mids = cachedMidpoints.current;
+        if (!mids.length) return -1;
+        let closest = 0;
+        let minDist = Math.abs(touchY - mids[0]);
+        for (let i = 1; i < mids.length; i++) {
+            const dist = Math.abs(touchY - mids[i]);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = i;
+            }
+        }
+        return closest;
+    };
 
     // ─── Desktop Drag & Drop (HTML5) ───
     const handleDragStart = (e, idx) => {
@@ -199,22 +220,28 @@ const Sidebar = ({ isOpen }) => {
     const activateTouchDrag = (idx, targetEl) => {
         if (navigator.vibrate) navigator.vibrate(50);
 
+        // Clear timer ref so we know it already fired
+        longPressTimer.current = null;
+
         touchDragActiveRef.current = true;
         setTouchDragActive(true);
         setDragIdx(idx);
+        setOverIdx(idx); // start with self
 
+        // Cache midpoints of all items for closest-item detection
         if (sidebarNavRef.current) {
             const items = sidebarNavRef.current.querySelectorAll('.sidebar-draggable-item');
-            cachedRects.current = Array.from(items).map(el => {
+            cachedMidpoints.current = Array.from(items).map(el => {
                 const r = el.getBoundingClientRect();
-                return { top: r.top, bottom: r.bottom };
+                return (r.top + r.bottom) / 2;
             });
         }
 
+        // Create ghost
         if (targetEl) {
             const rect = targetEl.getBoundingClientRect();
             ghostInitY.current = rect.top;
-            ghostHeightRef.current = rect.height;
+            ghostHeight.current = rect.height;
 
             const ghost = targetEl.cloneNode(true);
             ghost.style.cssText = `
@@ -256,7 +283,6 @@ const Sidebar = ({ isOpen }) => {
 
     const resetDragState = () => {
         cancelLongPress();
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
         if (dragNodeRef.current) {
             dragNodeRef.current.classList.remove('dragging');
         }
@@ -269,7 +295,7 @@ const Sidebar = ({ isOpen }) => {
         setDragIdx(null);
         setOverIdx(null);
         dragNodeRef.current = null;
-        cachedRects.current = [];
+        cachedMidpoints.current = [];
     };
 
     // ─── Native listeners: touchmove (passive:false) + contextmenu block ───
@@ -277,7 +303,6 @@ const Sidebar = ({ isOpen }) => {
         const el = sidebarNavRef.current;
         if (!el) return;
 
-        // Block native context menu on ALL elements inside sidebar
         const onContextMenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -291,38 +316,30 @@ const Sidebar = ({ isOpen }) => {
                 const dx = Math.abs(touch.clientX - touchOrigin.current.x);
                 const dy = Math.abs(touch.clientY - touchOrigin.current.y);
                 if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
-                    // User is scrolling → cancel long-press, let browser scroll
                     cancelLongPress();
-                    return;
+                    return; // allow scroll
                 }
-                // Finger barely moved AND long-press timer is still running:
-                // MUST preventDefault here to stop browser from claiming the scroll gesture.
-                // Without this, the browser starts scrolling and later preventDefault() is ignored.
+                // Finger barely moved, long-press still pending → block scroll to preserve gesture
                 if (longPressTimer.current) {
                     e.preventDefault();
                 }
                 return;
             }
 
-            // Drag IS active → block scroll, move ghost
+            // ─── Drag IS active ───
             e.preventDefault();
             e.stopPropagation();
 
-            // Update overIndex IMMEDIATELY (not in rAF) so touchend always has the latest value
-            const rects = cachedRects.current;
-            for (let i = 0; i < rects.length; i++) {
-                if (touch.clientY >= rects[i].top && touch.clientY <= rects[i].bottom) {
-                    if (overIndexRef.current !== i) {
-                        overIndexRef.current = i;
-                        setOverIndex(i);
-                    }
-                    break;
-                }
+            // Find closest item (not exact bounds — works in gaps too)
+            const closest = findClosestItem(touch.clientY);
+            if (closest >= 0 && overIndexRef.current !== closest) {
+                overIndexRef.current = closest;
+                setOverIndex(closest);
             }
 
-            // Move ghost via transform (GPU composited = smooth)
+            // Move ghost via transform (GPU composited)
             if (ghostRef.current) {
-                const dy = touch.clientY - ghostHeightRef.current / 2 - ghostInitY.current;
+                const dy = touch.clientY - ghostHeight.current / 2 - ghostInitY.current;
                 ghostRef.current.style.transform = `translateY(${dy}px)`;
             }
         };
@@ -341,7 +358,6 @@ const Sidebar = ({ isOpen }) => {
             resetDragState();
         };
 
-        // Attach to sidebar AND document (capture phase) to catch all context menus
         el.addEventListener('contextmenu', onContextMenu, true);
         el.addEventListener('touchmove', onTouchMove, { passive: false });
         el.addEventListener('touchend', onTouchEnd);
@@ -359,7 +375,6 @@ const Sidebar = ({ isOpen }) => {
     useEffect(() => {
         return () => {
             cancelLongPress();
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
         };
     }, []);
 
@@ -370,13 +385,12 @@ const Sidebar = ({ isOpen }) => {
         return cls;
     };
 
-    // Navigate on click (not via <a href>)
     const handleNavClick = (path) => {
-        if (touchDragActiveRef.current) return; // don't navigate during drag
+        if (touchDragActiveRef.current) return;
         navigate(path);
     };
 
-    // ─── Render menu item (uses <div> not <a> to avoid native link long-press menu) ───
+    // ─── Render menu item ───
     const renderMenuItem = (item, idx) => (
         <li
             key={item.id}
