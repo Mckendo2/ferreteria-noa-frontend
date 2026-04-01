@@ -271,10 +271,17 @@ const Sidebar = ({ isOpen }) => {
         cachedRects.current = [];
     };
 
-    // ─── Native touchmove/touchend listeners (passive: false) ───
+    // ─── Native touch + contextmenu listeners (passive: false) ───
     useEffect(() => {
         const el = sidebarNavRef.current;
         if (!el) return;
+
+        // Block native context menu ("Open in new tab", etc.) on long-press
+        const onContextMenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
 
         const onTouchMove = (e) => {
             const touch = e.touches[0];
@@ -329,11 +336,13 @@ const Sidebar = ({ isOpen }) => {
             resetDragState();
         };
 
+        el.addEventListener('contextmenu', onContextMenu);
         el.addEventListener('touchmove', onTouchMove, { passive: false });
         el.addEventListener('touchend', onTouchEnd);
         el.addEventListener('touchcancel', onTouchEnd);
 
         return () => {
+            el.removeEventListener('contextmenu', onContextMenu);
             el.removeEventListener('touchmove', onTouchMove);
             el.removeEventListener('touchend', onTouchEnd);
             el.removeEventListener('touchcancel', onTouchEnd);
