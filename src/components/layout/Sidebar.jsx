@@ -1,8 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import {
-    LayoutDashboard,
     Package,
     Tags,
     Users,
@@ -16,7 +15,6 @@ import {
     BadgeDollarSign,
     ChevronDown,
     Key,
-    Keyboard,
     ClipboardList,
     FileText,
     Home,
@@ -30,15 +28,16 @@ const MOVE_THRESHOLD = 10;
 
 const Sidebar = ({ isOpen }) => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { hasPermission } = useAuth();
     const [openDropdown, setOpenDropdown] = useState(null);
 
-    // Drag visual state (for re-render)
+    // Drag visual state
     const [dragIndex, setDragIndex] = useState(null);
     const [overIndex, setOverIndex] = useState(null);
     const [touchDragActive, setTouchDragActive] = useState(false);
 
-    // Refs that event handlers read (avoid stale closures)
+    // Refs for event handlers (avoid stale closures)
     const dragIndexRef = useRef(null);
     const overIndexRef = useRef(null);
     const touchDragActiveRef = useRef(false);
@@ -49,7 +48,7 @@ const Sidebar = ({ isOpen }) => {
     const touchOrigin = useRef({ x: 0, y: 0 });
     const rafRef = useRef(null);
     const cachedRects = useRef([]);
-    const reorderRef = useRef(null); // will hold latest reorder fn
+    const reorderRef = useRef(null);
 
     const allMenuItems = [
         { id: 'inicio', path: '/dashboard', name: 'Inicio', icon: <Home size={18} />, permission: null },
@@ -145,10 +144,9 @@ const Sidebar = ({ isOpen }) => {
         });
     }, [hasPermission]);
 
-    // Keep reorder ref current
     reorderRef.current = reorder;
 
-    // Helper to sync ref + state
+    // Sync ref + state helpers
     const setDragIdx = (val) => { dragIndexRef.current = val; setDragIndex(val); };
     const setOverIdx = (val) => { overIndexRef.current = val; setOverIndex(val); };
 
@@ -203,7 +201,6 @@ const Sidebar = ({ isOpen }) => {
         setTouchDragActive(true);
         setDragIdx(idx);
 
-        // Cache rects once for fast hit-testing
         if (sidebarNavRef.current) {
             const items = sidebarNavRef.current.querySelectorAll('.sidebar-draggable-item');
             cachedRects.current = Array.from(items).map(el => {
@@ -212,7 +209,6 @@ const Sidebar = ({ isOpen }) => {
             });
         }
 
-        // Create ghost clone
         if (targetEl) {
             const rect = targetEl.getBoundingClientRect();
             const ghost = targetEl.cloneNode(true);
@@ -271,12 +267,12 @@ const Sidebar = ({ isOpen }) => {
         cachedRects.current = [];
     };
 
-    // ─── Native touch + contextmenu listeners (passive: false) ───
+    // ─── Native listeners: touchmove (passive:false) + contextmenu block ───
     useEffect(() => {
         const el = sidebarNavRef.current;
         if (!el) return;
 
-        // Block native context menu ("Open in new tab", etc.) on long-press
+        // Block native context menu on ALL elements inside sidebar
         const onContextMenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -286,29 +282,26 @@ const Sidebar = ({ isOpen }) => {
         const onTouchMove = (e) => {
             const touch = e.touches[0];
 
-            // If not yet dragging, check movement to cancel long-press
             if (!touchDragActiveRef.current) {
                 const dx = Math.abs(touch.clientX - touchOrigin.current.x);
                 const dy = Math.abs(touch.clientY - touchOrigin.current.y);
                 if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
                     cancelLongPress();
                 }
-                return; // allow normal scroll
+                return; // allow scroll
             }
 
-            // ─── Drag IS active → prevent scroll ───
+            // Drag active → block scroll
             e.preventDefault();
             e.stopPropagation();
 
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
             rafRef.current = requestAnimationFrame(() => {
-                // Move ghost
                 if (ghostRef.current) {
                     const gh = ghostRef.current.offsetHeight;
                     ghostRef.current.style.top = `${touch.clientY - gh / 2}px`;
                 }
 
-                // Hit-test cached rects
                 const rects = cachedRects.current;
                 for (let i = 0; i < rects.length; i++) {
                     if (touch.clientY >= rects[i].top && touch.clientY <= rects[i].bottom) {
@@ -336,20 +329,21 @@ const Sidebar = ({ isOpen }) => {
             resetDragState();
         };
 
-        el.addEventListener('contextmenu', onContextMenu);
+        // Attach to sidebar AND document (capture phase) to catch all context menus
+        el.addEventListener('contextmenu', onContextMenu, true);
         el.addEventListener('touchmove', onTouchMove, { passive: false });
         el.addEventListener('touchend', onTouchEnd);
         el.addEventListener('touchcancel', onTouchEnd);
 
         return () => {
-            el.removeEventListener('contextmenu', onContextMenu);
+            el.removeEventListener('contextmenu', onContextMenu, true);
             el.removeEventListener('touchmove', onTouchMove);
             el.removeEventListener('touchend', onTouchEnd);
             el.removeEventListener('touchcancel', onTouchEnd);
         };
-    }, []); // empty deps — uses refs, not state
+    }, []);
 
-    // Cleanup timers on unmount
+    // Cleanup on unmount
     useEffect(() => {
         return () => {
             cancelLongPress();
@@ -364,7 +358,13 @@ const Sidebar = ({ isOpen }) => {
         return cls;
     };
 
-    // Render a normal menu item
+    // Navigate on click (not via <a href>)
+    const handleNavClick = (path) => {
+        if (touchDragActiveRef.current) return; // don't navigate during drag
+        navigate(path);
+    };
+
+    // ─── Render menu item (uses <div> not <a> to avoid native link long-press menu) ───
     const renderMenuItem = (item, idx) => (
         <li
             key={item.id}
@@ -380,19 +380,20 @@ const Sidebar = ({ isOpen }) => {
             <div className="drag-handle" aria-label="Arrastrar para reordenar">
                 <GripVertical size={14} />
             </div>
-            <Link
-                to={item.path}
-                className={location.pathname === item.path ? 'active' : ''}
-                draggable={false}
-                onDragStart={(e) => e.preventDefault()}
+            <div
+                className={`sidebar-link${location.pathname === item.path ? ' active' : ''}`}
+                onClick={() => handleNavClick(item.path)}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleNavClick(item.path); }}
             >
                 {item.icon}
                 <span>{item.name}</span>
-            </Link>
+            </div>
         </li>
     );
 
-    // Render the dropdown item (Roles y Permisos)
+    // ─── Render dropdown item ───
     const renderDropdownItem = (item, idx) => {
         const dropdownActive = isDropdownActive(item);
         return (
@@ -410,15 +411,14 @@ const Sidebar = ({ isOpen }) => {
                 <div className="drag-handle" aria-label="Arrastrar para reordenar">
                     <GripVertical size={14} />
                 </div>
-                <a
-                    href="#"
-                    className={dropdownActive ? 'active' : ''}
-                    onClick={(event) => {
-                        event.preventDefault();
+                <div
+                    className={`sidebar-link${dropdownActive ? ' active' : ''}`}
+                    onClick={(e) => {
+                        e.preventDefault();
                         toggleDropdown();
                     }}
-                    draggable={false}
-                    onDragStart={(e) => e.preventDefault()}
+                    role="button"
+                    tabIndex={0}
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -432,7 +432,7 @@ const Sidebar = ({ isOpen }) => {
                             transform: openDropdown === 'roles' ? 'rotate(180deg)' : 'rotate(0)'
                         }}
                     />
-                </a>
+                </div>
                 <ul
                     className="sidebar-dropdown"
                     style={{
@@ -446,16 +446,17 @@ const Sidebar = ({ isOpen }) => {
                 >
                     {item.children.map((child) => (
                         <li key={child.path}>
-                            <Link
-                                to={child.path}
-                                className={location.pathname === child.path ? 'active' : ''}
-                                draggable={false}
-                                onDragStart={(e) => e.preventDefault()}
+                            <div
+                                className={`sidebar-link${location.pathname === child.path ? ' active' : ''}`}
+                                onClick={() => handleNavClick(child.path)}
+                                role="link"
+                                tabIndex={0}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleNavClick(child.path); }}
                                 style={{ fontSize: '0.9rem', padding: '0.5rem 0.75rem' }}
                             >
                                 {child.icon}
                                 <span>{child.name}</span>
-                            </Link>
+                            </div>
                         </li>
                     ))}
                 </ul>

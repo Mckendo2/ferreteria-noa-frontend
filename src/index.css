@@ -432,11 +432,13 @@ body.light-mode .sidebar:hover::-webkit-scrollbar-thumb {
   padding: 1.5rem 0.5rem;
 }
 
-.sidebar.collapsed .sidebar-nav li a span {
+.sidebar.collapsed .sidebar-nav li a span,
+.sidebar.collapsed .sidebar-nav li .sidebar-link span {
   display: none;
 }
 
-.sidebar.collapsed .sidebar-nav li a {
+.sidebar.collapsed .sidebar-nav li a,
+.sidebar.collapsed .sidebar-nav li .sidebar-link {
   justify-content: center;
   padding: 0.6rem 0;
 }
@@ -451,7 +453,8 @@ body.light-mode .sidebar:hover::-webkit-scrollbar-thumb {
   user-select: none;
 }
 
-.sidebar-nav li a {
+.sidebar-nav li a,
+.sidebar-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -462,17 +465,21 @@ body.light-mode .sidebar:hover::-webkit-scrollbar-thumb {
   font-weight: 500;
   border-radius: 6px;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.sidebar-nav li a:hover {
+.sidebar-nav li a:hover,
+.sidebar-link:hover {
   background: var(--hover-bg);
   color: var(--text-primary);
 }
 
-.sidebar-nav li a.active {
+.sidebar-nav li a.active,
+.sidebar-link.active {
   background: var(--active-bg);
   color: var(--text-primary);
 }
+
 
 /* Sidebar Drag & Drop */
 .sidebar-draggable-item {
