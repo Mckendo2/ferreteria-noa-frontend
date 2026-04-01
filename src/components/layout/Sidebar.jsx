@@ -286,12 +286,20 @@ const Sidebar = ({ isOpen }) => {
                 const dx = Math.abs(touch.clientX - touchOrigin.current.x);
                 const dy = Math.abs(touch.clientY - touchOrigin.current.y);
                 if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+                    // User is scrolling → cancel long-press, let browser scroll
                     cancelLongPress();
+                    return;
                 }
-                return; // allow scroll
+                // Finger barely moved AND long-press timer is still running:
+                // MUST preventDefault here to stop browser from claiming the scroll gesture.
+                // Without this, the browser starts scrolling and later preventDefault() is ignored.
+                if (longPressTimer.current) {
+                    e.preventDefault();
+                }
+                return;
             }
 
-            // Drag active → block scroll
+            // Drag IS active → block scroll, move ghost
             e.preventDefault();
             e.stopPropagation();
 
