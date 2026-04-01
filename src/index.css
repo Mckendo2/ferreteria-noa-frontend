@@ -534,18 +534,10 @@ body.light-mode .sidebar-draggable-item.drag-over {
   display: none;
 }
 
-/* Ghost element for touch drag */
-.drag-ghost {
-  border-radius: 8px !important;
-  backdrop-filter: blur(8px);
-  will-change: top;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
+/* Hide drag handles on mobile (drag is desktop-only) */
 @media (max-width: 768px) {
   .drag-handle {
-    color: var(--text-secondary);
-    opacity: 0.35;
+    display: none;
   }
 }
 
