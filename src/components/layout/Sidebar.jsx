@@ -25,28 +25,31 @@ import {
 } from 'lucide-react';
 
 const STORAGE_KEY = 'sidebar_order';
-const LONG_PRESS_MS = 1200; // 1.2 seconds to activate drag on mobile
-const MOVE_THRESHOLD = 8; // px of movement allowed during long-press
+const LONG_PRESS_MS = 1200;
+const MOVE_THRESHOLD = 10;
 
 const Sidebar = ({ isOpen }) => {
     const location = useLocation();
     const { hasPermission } = useAuth();
     const [openDropdown, setOpenDropdown] = useState(null);
 
-    // Drag state
+    // Drag visual state (for re-render)
     const [dragIndex, setDragIndex] = useState(null);
     const [overIndex, setOverIndex] = useState(null);
     const [touchDragActive, setTouchDragActive] = useState(false);
+
+    // Refs that event handlers read (avoid stale closures)
+    const dragIndexRef = useRef(null);
+    const overIndexRef = useRef(null);
+    const touchDragActiveRef = useRef(false);
     const dragNodeRef = useRef(null);
     const sidebarNavRef = useRef(null);
     const ghostRef = useRef(null);
-
-    // Long-press refs
     const longPressTimer = useRef(null);
     const touchOrigin = useRef({ x: 0, y: 0 });
-    const touchDragActiveRef = useRef(false); // mirror for event handlers (no stale closure)
     const rafRef = useRef(null);
-    const cachedRects = useRef([]); // cache item positions for perf
+    const cachedRects = useRef([]);
+    const reorderRef = useRef(null); // will hold latest reorder fn
 
     const allMenuItems = [
         { id: 'inicio', path: '/dashboard', name: 'Inicio', icon: <Home size={18} />, permission: null },
@@ -76,7 +79,6 @@ const Sidebar = ({ isOpen }) => {
         }
     ];
 
-    // Load saved order from localStorage
     const getSavedOrder = () => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -124,23 +126,35 @@ const Sidebar = ({ isOpen }) => {
         }
     }, [location.pathname]);
 
-    // ─── Reorder helper ───
+    // ─── Reorder ───
     const reorder = useCallback((fromIdx, toIdx) => {
         if (fromIdx === toIdx) return;
-        const fromItem = visibleItems[fromIdx];
-        const toItem = visibleItems[toIdx];
-        const fullFromIdx = orderedItems.indexOf(fromItem);
-        const fullToIdx = orderedItems.indexOf(toItem);
-        if (fullFromIdx === -1 || fullToIdx === -1) return;
-        const newItems = [...orderedItems];
-        const [moved] = newItems.splice(fullFromIdx, 1);
-        newItems.splice(fullToIdx, 0, moved);
-        setOrderedItems(newItems);
-    }, [visibleItems, orderedItems]);
+        setOrderedItems(prev => {
+            const vis = prev.filter(item =>
+                item.permission === null || hasPermission(item.permission)
+            );
+            const fromItem = vis[fromIdx];
+            const toItem = vis[toIdx];
+            const fullFromIdx = prev.indexOf(fromItem);
+            const fullToIdx = prev.indexOf(toItem);
+            if (fullFromIdx === -1 || fullToIdx === -1) return prev;
+            const newItems = [...prev];
+            const [moved] = newItems.splice(fullFromIdx, 1);
+            newItems.splice(fullToIdx, 0, moved);
+            return newItems;
+        });
+    }, [hasPermission]);
+
+    // Keep reorder ref current
+    reorderRef.current = reorder;
+
+    // Helper to sync ref + state
+    const setDragIdx = (val) => { dragIndexRef.current = val; setDragIndex(val); };
+    const setOverIdx = (val) => { overIndexRef.current = val; setOverIndex(val); };
 
     // ─── Desktop Drag & Drop (HTML5) ───
     const handleDragStart = (e, idx) => {
-        setDragIndex(idx);
+        setDragIdx(idx);
         dragNodeRef.current = e.target.closest('.sidebar-draggable-item');
         e.dataTransfer.effectAllowed = 'move';
         if (dragNodeRef.current) {
@@ -154,18 +168,18 @@ const Sidebar = ({ isOpen }) => {
     const handleDragOver = (e, idx) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
-        if (idx !== overIndex) setOverIndex(idx);
+        setOverIdx(idx);
     };
 
     const handleDragEnter = (e, idx) => {
         e.preventDefault();
-        if (idx !== overIndex) setOverIndex(idx);
+        setOverIdx(idx);
     };
 
     const handleDrop = (e, idx) => {
         e.preventDefault();
-        if (dragIndex !== null && dragIndex !== idx) {
-            reorder(dragIndex, idx);
+        if (dragIndexRef.current !== null && dragIndexRef.current !== idx) {
+            reorder(dragIndexRef.current, idx);
         }
         resetDragState();
     };
@@ -174,7 +188,7 @@ const Sidebar = ({ isOpen }) => {
         resetDragState();
     };
 
-    // ─── Touch: Long-press to activate drag (Mobile) ───
+    // ─── Touch: Long-press to activate (Mobile) ───
     const cancelLongPress = () => {
         if (longPressTimer.current) {
             clearTimeout(longPressTimer.current);
@@ -183,20 +197,22 @@ const Sidebar = ({ isOpen }) => {
     };
 
     const activateTouchDrag = (idx, targetEl) => {
-        // Vibrate for haptic feedback if available
         if (navigator.vibrate) navigator.vibrate(50);
 
         touchDragActiveRef.current = true;
         setTouchDragActive(true);
-        setDragIndex(idx);
+        setDragIdx(idx);
 
-        // Cache all item rects for fast hit-testing during move
+        // Cache rects once for fast hit-testing
         if (sidebarNavRef.current) {
             const items = sidebarNavRef.current.querySelectorAll('.sidebar-draggable-item');
-            cachedRects.current = Array.from(items).map(el => el.getBoundingClientRect());
+            cachedRects.current = Array.from(items).map(el => {
+                const r = el.getBoundingClientRect();
+                return { top: r.top, bottom: r.bottom };
+            });
         }
 
-        // Create ghost
+        // Create ghost clone
         if (targetEl) {
             const rect = targetEl.getBoundingClientRect();
             const ghost = targetEl.cloneNode(true);
@@ -213,7 +229,7 @@ const Sidebar = ({ isOpen }) => {
                 border-radius: 8px;
                 background: var(--bg-card);
                 border: 2px solid var(--primary-blue, #0070F3);
-                will-change: transform;
+                will-change: top;
                 transition: none;
             `;
             ghost.classList.add('drag-ghost');
@@ -229,61 +245,12 @@ const Sidebar = ({ isOpen }) => {
         const touch = e.touches[0];
         touchOrigin.current = { x: touch.clientX, y: touch.clientY };
 
-        // Get the item element for later use
         const target = e.target.closest('.sidebar-draggable-item');
 
-        // Start long-press timer — only activates after LONG_PRESS_MS
         cancelLongPress();
         longPressTimer.current = setTimeout(() => {
             activateTouchDrag(idx, target);
         }, LONG_PRESS_MS);
-    };
-
-    const handleTouchMove = (e) => {
-        const touch = e.touches[0];
-
-        // If drag NOT active yet, check if finger moved too far → cancel long-press
-        if (!touchDragActiveRef.current) {
-            const dx = Math.abs(touch.clientX - touchOrigin.current.x);
-            const dy = Math.abs(touch.clientY - touchOrigin.current.y);
-            if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
-                cancelLongPress();
-                // Let the browser handle the scroll normally
-            }
-            return; // Do NOT preventDefault → scroll works normally
-        }
-
-        // ─── Drag IS active ───
-        e.preventDefault(); // block scroll only when dragging
-
-        // Use rAF to throttle DOM updates for smooth movement
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        rafRef.current = requestAnimationFrame(() => {
-            // Move ghost
-            if (ghostRef.current) {
-                const ghostHeight = ghostRef.current.offsetHeight;
-                ghostRef.current.style.top = `${touch.clientY - ghostHeight / 2}px`;
-            }
-
-            // Hit-test against cached rects (fast, no layout thrash)
-            const rects = cachedRects.current;
-            for (let i = 0; i < rects.length; i++) {
-                if (touch.clientY >= rects[i].top && touch.clientY <= rects[i].bottom) {
-                    setOverIndex(i);
-                    break;
-                }
-            }
-        });
-    };
-
-    const handleTouchEnd = () => {
-        cancelLongPress();
-
-        if (touchDragActiveRef.current && dragIndex !== null && overIndex !== null && dragIndex !== overIndex) {
-            reorder(dragIndex, overIndex);
-        }
-
-        resetDragState();
     };
 
     const resetDragState = () => {
@@ -298,13 +265,82 @@ const Sidebar = ({ isOpen }) => {
         }
         touchDragActiveRef.current = false;
         setTouchDragActive(false);
-        setDragIndex(null);
-        setOverIndex(null);
+        setDragIdx(null);
+        setOverIdx(null);
         dragNodeRef.current = null;
         cachedRects.current = [];
     };
 
-    // Cleanup on unmount
+    // ─── Native touchmove/touchend listeners (passive: false) ───
+    useEffect(() => {
+        const el = sidebarNavRef.current;
+        if (!el) return;
+
+        const onTouchMove = (e) => {
+            const touch = e.touches[0];
+
+            // If not yet dragging, check movement to cancel long-press
+            if (!touchDragActiveRef.current) {
+                const dx = Math.abs(touch.clientX - touchOrigin.current.x);
+                const dy = Math.abs(touch.clientY - touchOrigin.current.y);
+                if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+                    cancelLongPress();
+                }
+                return; // allow normal scroll
+            }
+
+            // ─── Drag IS active → prevent scroll ───
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            rafRef.current = requestAnimationFrame(() => {
+                // Move ghost
+                if (ghostRef.current) {
+                    const gh = ghostRef.current.offsetHeight;
+                    ghostRef.current.style.top = `${touch.clientY - gh / 2}px`;
+                }
+
+                // Hit-test cached rects
+                const rects = cachedRects.current;
+                for (let i = 0; i < rects.length; i++) {
+                    if (touch.clientY >= rects[i].top && touch.clientY <= rects[i].bottom) {
+                        if (overIndexRef.current !== i) {
+                            overIndexRef.current = i;
+                            setOverIndex(i);
+                        }
+                        break;
+                    }
+                }
+            });
+        };
+
+        const onTouchEnd = () => {
+            cancelLongPress();
+
+            if (touchDragActiveRef.current) {
+                const from = dragIndexRef.current;
+                const to = overIndexRef.current;
+                if (from !== null && to !== null && from !== to) {
+                    reorderRef.current(from, to);
+                }
+            }
+
+            resetDragState();
+        };
+
+        el.addEventListener('touchmove', onTouchMove, { passive: false });
+        el.addEventListener('touchend', onTouchEnd);
+        el.addEventListener('touchcancel', onTouchEnd);
+
+        return () => {
+            el.removeEventListener('touchmove', onTouchMove);
+            el.removeEventListener('touchend', onTouchEnd);
+            el.removeEventListener('touchcancel', onTouchEnd);
+        };
+    }, []); // empty deps — uses refs, not state
+
+    // Cleanup timers on unmount
     useEffect(() => {
         return () => {
             cancelLongPress();
@@ -319,11 +355,6 @@ const Sidebar = ({ isOpen }) => {
         return cls;
     };
 
-    // Build touch handlers — touchMove & touchEnd on the UL so they work even when finger leaves original item
-    const touchItemHandlers = (idx) => ({
-        onTouchStart: (e) => handleTouchStart(e, idx),
-    });
-
     // Render a normal menu item
     const renderMenuItem = (item, idx) => (
         <li
@@ -335,7 +366,7 @@ const Sidebar = ({ isOpen }) => {
             onDragEnter={(e) => handleDragEnter(e, idx)}
             onDrop={(e) => handleDrop(e, idx)}
             onDragEnd={handleDragEnd}
-            {...touchItemHandlers(idx)}
+            onTouchStart={(e) => handleTouchStart(e, idx)}
         >
             <div className="drag-handle" aria-label="Arrastrar para reordenar">
                 <GripVertical size={14} />
@@ -365,7 +396,7 @@ const Sidebar = ({ isOpen }) => {
                 onDragEnter={(e) => handleDragEnter(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
                 onDragEnd={handleDragEnd}
-                {...touchItemHandlers(idx)}
+                onTouchStart={(e) => handleTouchStart(e, idx)}
             >
                 <div className="drag-handle" aria-label="Arrastrar para reordenar">
                     <GripVertical size={14} />
@@ -425,13 +456,7 @@ const Sidebar = ({ isOpen }) => {
 
     return (
         <aside className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
-            <ul
-                className="sidebar-nav"
-                ref={sidebarNavRef}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onTouchCancel={handleTouchEnd}
-            >
+            <ul className="sidebar-nav" ref={sidebarNavRef}>
                 {visibleItems.map((item, idx) =>
                     item.isDropdown
                         ? renderDropdownItem(item, idx)
