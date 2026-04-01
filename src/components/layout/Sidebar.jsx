@@ -49,6 +49,8 @@ const Sidebar = ({ isOpen }) => {
     const rafRef = useRef(null);
     const cachedRects = useRef([]);
     const reorderRef = useRef(null);
+    const ghostInitY = useRef(0);
+    const ghostHeightRef = useRef(0);
 
     const allMenuItems = [
         { id: 'inicio', path: '/dashboard', name: 'Inicio', icon: <Home size={18} />, permission: null },
@@ -211,6 +213,9 @@ const Sidebar = ({ isOpen }) => {
 
         if (targetEl) {
             const rect = targetEl.getBoundingClientRect();
+            ghostInitY.current = rect.top;
+            ghostHeightRef.current = rect.height;
+
             const ghost = targetEl.cloneNode(true);
             ghost.style.cssText = `
                 position: fixed;
@@ -225,7 +230,7 @@ const Sidebar = ({ isOpen }) => {
                 border-radius: 8px;
                 background: var(--bg-card);
                 border: 2px solid var(--primary-blue, #0070F3);
-                will-change: top;
+                will-change: transform;
                 transition: none;
             `;
             ghost.classList.add('drag-ghost');
@@ -303,24 +308,23 @@ const Sidebar = ({ isOpen }) => {
             e.preventDefault();
             e.stopPropagation();
 
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
-            rafRef.current = requestAnimationFrame(() => {
-                if (ghostRef.current) {
-                    const gh = ghostRef.current.offsetHeight;
-                    ghostRef.current.style.top = `${touch.clientY - gh / 2}px`;
-                }
-
-                const rects = cachedRects.current;
-                for (let i = 0; i < rects.length; i++) {
-                    if (touch.clientY >= rects[i].top && touch.clientY <= rects[i].bottom) {
-                        if (overIndexRef.current !== i) {
-                            overIndexRef.current = i;
-                            setOverIndex(i);
-                        }
-                        break;
+            // Update overIndex IMMEDIATELY (not in rAF) so touchend always has the latest value
+            const rects = cachedRects.current;
+            for (let i = 0; i < rects.length; i++) {
+                if (touch.clientY >= rects[i].top && touch.clientY <= rects[i].bottom) {
+                    if (overIndexRef.current !== i) {
+                        overIndexRef.current = i;
+                        setOverIndex(i);
                     }
+                    break;
                 }
-            });
+            }
+
+            // Move ghost via transform (GPU composited = smooth)
+            if (ghostRef.current) {
+                const dy = touch.clientY - ghostHeightRef.current / 2 - ghostInitY.current;
+                ghostRef.current.style.transform = `translateY(${dy}px)`;
+            }
         };
 
         const onTouchEnd = () => {
