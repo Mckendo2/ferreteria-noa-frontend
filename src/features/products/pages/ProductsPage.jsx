@@ -214,9 +214,10 @@ const ProductsPage = () => {
                     <button 
                         onClick={() => fileInputRef.current.click()}
                         disabled={isImporting}
+                        className="btn-excel"
                         style={{ 
                             background: '#217346', 
-                            color: 'white', border: 'none', borderRadius: '8px',
+                            color: 'white',
                             opacity: isImporting ? 0.7 : 1
                         }}
                     >
@@ -227,9 +228,10 @@ const ProductsPage = () => {
                     <div style={{ position: 'relative', width: '100%' }}>
                         <button 
                             onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                            className="btn-excel"
                             style={{ 
                                 background: '#107c41', 
-                                color: 'white', border: 'none', borderRadius: '8px',
+                                color: 'white',
                                 width: '100%'
                             }}
                         >

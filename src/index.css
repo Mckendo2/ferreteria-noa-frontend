@@ -1379,15 +1379,59 @@ body.light-mode .btn-secondary:hover {
   
   .module-header-actions {
     display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 0.75rem;
-    margin-top: 1rem;
+    gap: 1rem;
+    align-items: center;
   }
 
-  .module-header-actions button {
-    width: 100% !important;
+  .btn-excel {
+    display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 0.65rem;
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+  }
+
+  @media (min-width: 769px) {
+    .btn-excel {
+      padding: 0.85rem 1.75rem !important;
+      font-size: 1rem !important;
+      height: 48px !important;
+      min-width: 190px;
+      width: auto !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-excel:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.1);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    
+    .module-header-actions > div {
+      width: auto !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .module-header-actions {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .module-header-actions button,
+    .btn-excel {
+      width: 100% !important;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+    }
   }
 
   /* Responsive Grids for Modals */
