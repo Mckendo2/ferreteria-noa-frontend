@@ -34,32 +34,46 @@ const LoginPage = () => {
 
     return (
         <div className="login-container">
-            <form className="login-form" onSubmit={handleSubmit}>
-                <h2>Iniciar Sesión</h2>
-                <div className="form-group">
-                    <label>Email</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="tu@email.com"
-                        required
-                        autoComplete="username"
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Contraseña</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="********"
-                        required
-                        autoComplete="current-password"
-                    />
-                </div>
-                <button type="submit">Entrar</button>
-            </form>
+            <div className="login-form-wrapper">
+                <form className="login-form" onSubmit={handleSubmit}>
+                    <h2>Ferretería NOA</h2>
+                    
+                    <div className="form-group">
+                        <label htmlFor="email">Email Corporativo</label>
+                        <input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="nombre@ejemplo.com"
+                            required
+                            autoComplete="username"
+                            spellCheck="false"
+                        />
+                    </div>
+                    
+                    <div className="form-group">
+                        <label htmlFor="password">Contraseña</label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            required
+                            autoComplete="current-password"
+                        />
+                    </div>
+                    
+                    <button type="submit">Acceder al Panel</button>
+                    
+                    <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                            &copy; {new Date().getFullYear()} Sistema de Gestión Interna
+                        </p>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };
