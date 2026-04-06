@@ -44,6 +44,7 @@ const LoginPage = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="tu@email.com"
                         required
+                        autoComplete="username"
                     />
                 </div>
                 <div className="form-group">
@@ -54,6 +55,7 @@ const LoginPage = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="********"
                         required
+                        autoComplete="current-password"
                     />
                 </div>
                 <button type="submit">Entrar</button>
