@@ -27,6 +27,7 @@ const Sidebar = ({ isOpen }) => {
     const navigate = useNavigate();
     const { user, hasPermission } = useAuth();
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [isDraggable, setIsDraggable] = useState(false);
 
     // Drag state (desktop only)
     const [dragIndex, setDragIndex] = useState(null);
@@ -103,14 +104,14 @@ const Sidebar = ({ isOpen }) => {
         return item.children.some(child => location.pathname === child.path);
     };
 
-    const toggleDropdown = () => {
-        setOpenDropdown(prev => prev === 'roles' ? null : 'roles');
+    const toggleDropdown = (id) => {
+        setOpenDropdown(prev => prev === id ? null : id);
     };
 
     useEffect(() => {
         const rolesItem = orderedItems.find(i => i.id === 'roles_permisos');
         if (rolesItem && isDropdownActive(rolesItem)) {
-            setOpenDropdown('roles');
+            setOpenDropdown('roles_permisos');
         }
     }, [location.pathname]);
 
@@ -192,14 +193,19 @@ const Sidebar = ({ isOpen }) => {
         <li
             key={item.id}
             className={getItemClass(idx)}
-            draggable
+            draggable={isDraggable}
             onDragStart={(e) => handleDragStart(e, idx)}
             onDragOver={(e) => handleDragOver(e, idx)}
             onDragEnter={(e) => handleDragEnter(e, idx)}
             onDrop={(e) => handleDrop(e, idx)}
             onDragEnd={handleDragEnd}
         >
-            <div className="drag-handle" aria-label="Arrastrar para reordenar">
+            <div 
+                className="drag-handle" 
+                aria-label="Arrastrar para reordenar"
+                onMouseEnter={() => setIsDraggable(true)}
+                onMouseLeave={() => setIsDraggable(false)}
+            >
                 <GripVertical size={14} />
             </div>
             <div
@@ -220,25 +226,32 @@ const Sidebar = ({ isOpen }) => {
     // ─── Render dropdown item ───
     const renderDropdownItem = (item, idx) => {
         const dropdownActive = isDropdownActive(item);
+        const isOpen = openDropdown === item.id;
+        
         return (
             <li
                 key={item.id}
                 className={getItemClass(idx)}
-                draggable
+                draggable={isDraggable}
                 onDragStart={(e) => handleDragStart(e, idx)}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnter={(e) => handleDragEnter(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
                 onDragEnd={handleDragEnd}
             >
-                <div className="drag-handle" aria-label="Arrastrar para reordenar">
+                <div 
+                    className="drag-handle" 
+                    aria-label="Arrastrar para reordenar"
+                    onMouseEnter={() => setIsDraggable(true)}
+                    onMouseLeave={() => setIsDraggable(false)}
+                >
                     <GripVertical size={14} />
                 </div>
                 <div
                     className={`sidebar-link${dropdownActive ? ' active' : ''}`}
                     onClick={(e) => {
                         e.preventDefault();
-                        toggleDropdown();
+                        toggleDropdown(item.id);
                     }}
                     role="button"
                     tabIndex={0}
@@ -254,14 +267,14 @@ const Sidebar = ({ isOpen }) => {
                         size={16}
                         style={{
                             transition: 'transform 0.3s ease',
-                            transform: openDropdown === 'roles' ? 'rotate(180deg)' : 'rotate(0)'
+                            transform: isOpen ? 'rotate(180deg)' : 'rotate(0)'
                         }}
                     />
                 </div>
                 <ul
                     className="sidebar-dropdown"
                     style={{
-                        maxHeight: openDropdown === 'roles' ? '200px' : '0',
+                        maxHeight: isOpen ? '200px' : '0',
                         overflow: 'hidden',
                         transition: 'max-height 0.3s ease',
                         paddingLeft: '1.5rem',
