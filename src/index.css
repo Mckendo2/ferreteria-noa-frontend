@@ -1323,6 +1323,21 @@ body.light-mode .btn-secondary:hover {
 }
 
 /* Responsive Queries */
+.module-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .module-header-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 @media (max-width: 1024px) {
   .charts-container {
     grid-template-columns: 1fr;
@@ -1349,7 +1364,7 @@ body.light-mode .btn-secondary:hover {
   }
 
   .search-input-wrapper {
-    display: none !important;
+    display: flex !important; /* Restore search visibility in mobile */
   }
 
   .filters-bar {
@@ -1359,6 +1374,20 @@ body.light-mode .btn-secondary:hover {
 
   .filter-group {
     width: 100%;
+    flex: none; /* Avoid overly stretched inputs in stacked view */
+  }
+  
+  .module-header-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .module-header-actions button {
+    width: 100% !important;
+    justify-content: center;
   }
 
   /* Responsive Grids for Modals */

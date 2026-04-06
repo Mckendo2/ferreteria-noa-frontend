@@ -195,16 +195,15 @@ const ProductsPage = () => {
 
     return (
         <div className="module-container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="module-header-container" style={{ marginBottom: '2rem' }}>
                 <PageHeader
                     title="Catálogo de Productos"
                     actionLabel="Nuevo Producto"
                     actionIcon={Plus}
                     onAction={handleOpenCreate}
-                    style={{ marginBottom: 0 }}
                 />
 
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="module-header-actions">
                     <input 
                         type="file" 
                         ref={fileInputRef} 
@@ -215,10 +214,8 @@ const ProductsPage = () => {
                     <button 
                         onClick={() => fileInputRef.current.click()}
                         disabled={isImporting}
-                        className="btn-secondary"
                         style={{ 
-                            display: 'flex', alignItems: 'center', gap: '0.5rem', 
-                            padding: '0.6rem 1rem', background: '#217346', 
+                            background: '#217346', 
                             color: 'white', border: 'none', borderRadius: '8px',
                             opacity: isImporting ? 0.7 : 1
                         }}
@@ -227,14 +224,13 @@ const ProductsPage = () => {
                         {isImporting ? 'Importando...' : 'Importar Excel'}
                     </button>
                     
-                    <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'relative', width: '100%' }}>
                         <button 
                             onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
-                            className="btn-secondary"
                             style={{ 
-                                display: 'flex', alignItems: 'center', gap: '0.5rem', 
-                                padding: '0.6rem 1rem', background: '#107c41', 
-                                color: 'white', border: 'none', borderRadius: '8px'
+                                background: '#107c41', 
+                                color: 'white', border: 'none', borderRadius: '8px',
+                                width: '100%'
                             }}
                         >
                             <FileSpreadsheet size={18} />
@@ -242,10 +238,10 @@ const ProductsPage = () => {
                         </button>
                         
                         {isExportMenuOpen && (
-                            <div style={{ 
+                            <div className="export-menu-dropdown" style={{ 
                                 position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', 
                                 background: 'var(--bg-card)', borderRadius: '8px', 
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 50, minWidth: '220px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 110, minWidth: '220px',
                                 border: '1px solid var(--border-light)', overflow: 'hidden'
                             }}>
                                 <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-light)', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
@@ -254,8 +250,6 @@ const ProductsPage = () => {
                                 <button 
                                     onClick={() => handleExportExcel('all')}
                                     style={{ width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}
-                                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                                    onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                                 >
                                     <Download size={16} /> Todo el inventario
                                 </button>
@@ -265,8 +259,6 @@ const ProductsPage = () => {
                                         key={cat.value}
                                         onClick={() => handleExportExcel(cat.value)}
                                         style={{ width: '100%', textAlign: 'left', padding: '0.5rem 1rem 0.5rem 2.5rem', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-primary)' }}
-                                        onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                                        onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                                     >
                                         {cat.label}
                                     </button>
