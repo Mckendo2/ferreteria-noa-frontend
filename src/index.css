@@ -1363,8 +1363,8 @@ body.light-mode .btn-secondary:hover {
     grid-template-columns: 1fr;
   }
 
-  .search-input-wrapper {
-    display: flex !important; /* Restore search visibility in mobile */
+  .filters-bar .search-input-wrapper {
+    display: flex !important; /* Restore search visibility in module filters only */
   }
 
   .filters-bar {
