@@ -27,7 +27,6 @@ const Sidebar = ({ isOpen }) => {
     const navigate = useNavigate();
     const { user, hasPermission } = useAuth();
     const [openDropdown, setOpenDropdown] = useState(null);
-    const [isDraggable, setIsDraggable] = useState(false);
 
     // Drag state (desktop only)
     const [dragIndex, setDragIndex] = useState(null);
@@ -133,14 +132,14 @@ const Sidebar = ({ isOpen }) => {
     // ─── Desktop Drag & Drop (HTML5 API) ───
     const handleDragStart = (e, idx) => {
         setDragIndex(idx);
-        dragNodeRef.current = e.target.closest('.sidebar-draggable-item');
+        const li = e.target.closest('li');
+        dragNodeRef.current = li;
         e.dataTransfer.effectAllowed = 'move';
-        if (dragNodeRef.current) {
-            e.dataTransfer.setDragImage(dragNodeRef.current, 0, 0);
+        if (li) {
+            e.dataTransfer.setDragImage(li, 0, 0);
+            // Wait-and-add class to avoid hiding original immediately
+            setTimeout(() => li.classList.add('dragging'), 0);
         }
-        setTimeout(() => {
-            if (dragNodeRef.current) dragNodeRef.current.classList.add('dragging');
-        }, 0);
     };
 
     const handleDragOver = (e, idx) => {
@@ -189,39 +188,40 @@ const Sidebar = ({ isOpen }) => {
     };
 
     // ─── Render menu item ───
-    const renderMenuItem = (item, idx) => (
-        <li
-            key={item.id}
-            className={getItemClass(idx)}
-            draggable={isDraggable}
-            onDragStart={(e) => handleDragStart(e, idx)}
-            onDragOver={(e) => handleDragOver(e, idx)}
-            onDragEnter={(e) => handleDragEnter(e, idx)}
-            onDrop={(e) => handleDrop(e, idx)}
-            onDragEnd={handleDragEnd}
-        >
-            <div 
-                className="drag-handle" 
-                aria-label="Arrastrar para reordenar"
-                onMouseEnter={() => setIsDraggable(true)}
-                onMouseLeave={() => setIsDraggable(false)}
+    const renderMenuItem = (item, idx) => {
+        const isActive = location.pathname === item.path;
+        return (
+            <li
+                key={item.id}
+                className={getItemClass(idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDragEnter={(e) => handleDragEnter(e, idx)}
+                onDrop={(e) => handleDrop(e, idx)}
             >
-                <GripVertical size={14} />
-            </div>
-            <div
-                className={`sidebar-link${location.pathname === item.path ? ' active' : ''}`}
-                onClick={() => handleNavClick(item.path)}
-                role="link"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleNavClick(item.path); }}
-                draggable={false}
-                onDragStart={preventLinkDrag}
-            >
-                {item.icon}
-                <span>{item.name}</span>
-            </div>
-        </li>
-    );
+                <div 
+                    className="drag-handle" 
+                    aria-label="Arrastrar para reordenar"
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragEnd={handleDragEnd}
+                >
+                    <GripVertical size={14} />
+                </div>
+                <div
+                    className={`sidebar-link${isActive ? ' active' : ''}`}
+                    onClick={() => handleNavClick(item.path)}
+                    role="link"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleNavClick(item.path); }}
+                    draggable={false}
+                    onDragStart={preventLinkDrag}
+                >
+                    {item.icon}
+                    <span>{item.name}</span>
+                </div>
+            </li>
+        );
+    };
 
     // ─── Render dropdown item ───
     const renderDropdownItem = (item, idx) => {
@@ -232,27 +232,22 @@ const Sidebar = ({ isOpen }) => {
             <li
                 key={item.id}
                 className={getItemClass(idx)}
-                draggable={isDraggable}
-                onDragStart={(e) => handleDragStart(e, idx)}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnter={(e) => handleDragEnter(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
-                onDragEnd={handleDragEnd}
             >
                 <div 
                     className="drag-handle" 
                     aria-label="Arrastrar para reordenar"
-                    onMouseEnter={() => setIsDraggable(true)}
-                    onMouseLeave={() => setIsDraggable(false)}
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragEnd={handleDragEnd}
                 >
                     <GripVertical size={14} />
                 </div>
                 <div
                     className={`sidebar-link${dropdownActive ? ' active' : ''}`}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        toggleDropdown(item.id);
-                    }}
+                    onClick={() => toggleDropdown(item.id)}
                     role="button"
                     tabIndex={0}
                     draggable={false}
