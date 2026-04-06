@@ -27,6 +27,7 @@ const Sidebar = ({ isOpen }) => {
     const navigate = useNavigate();
     const { user, hasPermission } = useAuth();
     const [openDropdown, setOpenDropdown] = useState(null);
+    const isOverHandle = useRef(false);
 
     // Drag state (desktop only)
     const [dragIndex, setDragIndex] = useState(null);
@@ -194,6 +195,15 @@ const Sidebar = ({ isOpen }) => {
             <li
                 key={item.id}
                 className={getItemClass(idx)}
+                draggable={true}
+                onDragStart={(e) => {
+                    if (!isOverHandle.current) {
+                        e.preventDefault();
+                        return;
+                    }
+                    handleDragStart(e, idx);
+                }}
+                onDragEnd={handleDragEnd}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnter={(e) => handleDragEnter(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
@@ -202,9 +212,8 @@ const Sidebar = ({ isOpen }) => {
                     <div 
                         className="drag-handle" 
                         aria-label="Arrastrar para reordenar"
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, idx)}
-                        onDragEnd={handleDragEnd}
+                        onMouseEnter={() => { isOverHandle.current = true; }}
+                        onMouseLeave={() => { isOverHandle.current = false; }}
                     >
                         <GripVertical size={14} />
                     </div>
@@ -234,6 +243,15 @@ const Sidebar = ({ isOpen }) => {
             <li
                 key={item.id}
                 className={getItemClass(idx)}
+                draggable={true}
+                onDragStart={(e) => {
+                    if (!isOverHandle.current) {
+                        e.preventDefault();
+                        return;
+                    }
+                    handleDragStart(e, idx);
+                }}
+                onDragEnd={handleDragEnd}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnter={(e) => handleDragEnter(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
@@ -242,9 +260,8 @@ const Sidebar = ({ isOpen }) => {
                     <div 
                         className="drag-handle" 
                         aria-label="Arrastrar para reordenar"
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, idx)}
-                        onDragEnd={handleDragEnd}
+                        onMouseEnter={() => { isOverHandle.current = true; }}
+                        onMouseLeave={() => { isOverHandle.current = false; }}
                     >
                         <GripVertical size={14} />
                     </div>
