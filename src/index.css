@@ -486,13 +486,18 @@ body.light-mode .sidebar:hover::-webkit-scrollbar-thumb {
 .sidebar-draggable-item {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
   border-radius: 6px;
   transition: transform 0.15s ease, opacity 0.15s ease, background 0.12s ease;
 }
 
-.sidebar-draggable-item .sidebar-link {
+.sidebar-item-main-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.sidebar-item-main-row .sidebar-link {
   flex: 1;
   min-width: 0;
 }

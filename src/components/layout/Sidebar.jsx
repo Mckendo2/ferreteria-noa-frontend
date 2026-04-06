@@ -198,26 +198,28 @@ const Sidebar = ({ isOpen }) => {
                 onDragEnter={(e) => handleDragEnter(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
             >
-                <div 
-                    className="drag-handle" 
-                    aria-label="Arrastrar para reordenar"
-                    draggable={true}
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragEnd={handleDragEnd}
-                >
-                    <GripVertical size={14} />
-                </div>
-                <div
-                    className={`sidebar-link${isActive ? ' active' : ''}`}
-                    onClick={() => handleNavClick(item.path)}
-                    role="link"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleNavClick(item.path); }}
-                    draggable={false}
-                    onDragStart={preventLinkDrag}
-                >
-                    {item.icon}
-                    <span>{item.name}</span>
+                <div className="sidebar-item-main-row">
+                    <div 
+                        className="drag-handle" 
+                        aria-label="Arrastrar para reordenar"
+                        draggable={true}
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <GripVertical size={14} />
+                    </div>
+                    <div
+                        className={`sidebar-link${isActive ? ' active' : ''}`}
+                        onClick={() => handleNavClick(item.path)}
+                        role="link"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleNavClick(item.path); }}
+                        draggable={false}
+                        onDragStart={preventLinkDrag}
+                    >
+                        {item.icon}
+                        <span>{item.name}</span>
+                    </div>
                 </div>
             </li>
         );
@@ -236,35 +238,37 @@ const Sidebar = ({ isOpen }) => {
                 onDragEnter={(e) => handleDragEnter(e, idx)}
                 onDrop={(e) => handleDrop(e, idx)}
             >
-                <div 
-                    className="drag-handle" 
-                    aria-label="Arrastrar para reordenar"
-                    draggable={true}
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragEnd={handleDragEnd}
-                >
-                    <GripVertical size={14} />
-                </div>
-                <div
-                    className={`sidebar-link${dropdownActive ? ' active' : ''}`}
-                    onClick={() => toggleDropdown(item.id)}
-                    role="button"
-                    tabIndex={0}
-                    draggable={false}
-                    onDragStart={preventLinkDrag}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {item.icon}
-                        <span>{item.name}</span>
-                    </span>
-                    <ChevronDown
-                        size={16}
-                        style={{
-                            transition: 'transform 0.3s ease',
-                            transform: isOpen ? 'rotate(180deg)' : 'rotate(0)'
-                        }}
-                    />
+                <div className="sidebar-item-main-row">
+                    <div 
+                        className="drag-handle" 
+                        aria-label="Arrastrar para reordenar"
+                        draggable={true}
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <GripVertical size={14} />
+                    </div>
+                    <div
+                        className={`sidebar-link${dropdownActive ? ' active' : ''}`}
+                        onClick={() => toggleDropdown(item.id)}
+                        role="button"
+                        tabIndex={0}
+                        draggable={false}
+                        onDragStart={preventLinkDrag}
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            {item.icon}
+                            <span>{item.name}</span>
+                        </span>
+                        <ChevronDown
+                            size={16}
+                            style={{
+                                transition: 'transform 0.3s ease',
+                                transform: isOpen ? 'rotate(180deg)' : 'rotate(0)'
+                            }}
+                        />
+                    </div>
                 </div>
                 <ul
                     className="sidebar-dropdown"
