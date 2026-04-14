@@ -63,7 +63,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
                 setImagePreview(null);
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, product]);
 
     const compressImage = (file) => {
@@ -160,7 +160,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
         if (fileRejections && fileRejections.length > 0) {
             const rejection = fileRejections[0];
             let errorMessage = 'Archivo rechazado.';
-            
+
             if (rejection.errors[0]?.code === 'file-too-large') {
                 errorMessage = 'La imagen es muy pesada (máximo 10MB).';
             } else if (rejection.errors[0]?.code === 'file-invalid-type') {
@@ -203,11 +203,11 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
 
     const handleCreateCategory = async (inputValue) => {
         if (!inputValue || !inputValue.trim()) return;
-        
+
         setIsSubmitting(true);
         try {
             const newCategory = await createCategory({ nombre: inputValue.trim() });
-            
+
             // Refresh categories in parent
             if (onRefreshCategories) {
                 await onRefreshCategories();
@@ -231,7 +231,7 @@ const ProductModal = ({ isOpen, onClose, onSave, categories, onRefreshCategories
             console.error('Error creating category:', error);
             Swal.fire({
                 title: 'Error',
-                text: 'No se pudo crear la categoría.',
+                text: 'Ya existe una categoría con ese nombre.',
                 icon: 'error',
                 customClass: { popup: 'my-swal-bg', confirmButton: 'my-swal-confirm' }
             });
