@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
-import { Search, ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, ArrowRightLeft, Package, Image as ImageIcon, X, CheckCircle, ArrowLeft, Calendar, Percent, FileText, ChevronRight, Filter, User, ChevronDown } from 'lucide-react';
+import { Search, ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, ArrowRightLeft, Package, Image as ImageIcon, X, CheckCircle, ArrowLeft, Calendar, Percent, FileText, ChevronRight, Filter, User, ChevronDown, UserPlus } from 'lucide-react';
 import useSales from '../hooks/useSales';
 import { createSale, getSaleById, updateSale } from '../services/saleService';
-import { getClients } from '../../clients/services/clientService';
+import { getClients, createClient } from '../../clients/services/clientService';
 import Swal from 'sweetalert2';
 import { jsPDF } from 'jspdf';
 import { generateSalePDF } from '../utils/salePdfGenerator';
@@ -134,6 +134,69 @@ const SalesPage = () => {
     const finalTotal = Math.max(0, cartTotal - (parseFloat(descuento) || 0));
     const cartCosto = cart.reduce((sum, item) => sum + ((item.costo || 0) * item.cantidad), 0);
     const ganancia = Math.max(0, finalTotal - cartCosto);
+
+    const handleAddClient = async () => {
+        const { value: formValues } = await Swal.fire({
+            title: 'Nuevo Cliente',
+            html:
+                '<input id="swal-input-nombre" class="swal2-input" placeholder="Nombre completo *" required>' +
+                '<input id="swal-input-telefono" class="swal2-input" placeholder="Teléfono u Ocupación">' +
+                '<input id="swal-input-email" class="swal2-input" placeholder="Correo electrónico (Opcional)">' +
+                '<input id="swal-input-direccion" class="swal2-input" placeholder="Dirección (Opcional)">',
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Registrar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'my-swal-bg',
+                confirmButton: 'my-swal-confirm',
+                cancelButton: 'my-swal-cancel',
+                input: 'my-swal-input'
+            },
+            preConfirm: () => {
+                const nombre = document.getElementById('swal-input-nombre').value;
+                if (!nombre) {
+                    Swal.showValidationMessage('El nombre es obligatorio');
+                    return false;
+                }
+                return {
+                    nombre: nombre,
+                    telefono: document.getElementById('swal-input-telefono').value,
+                    email: document.getElementById('swal-input-email').value,
+                    direccion: document.getElementById('swal-input-direccion').value,
+                    activo: 1
+                };
+            }
+        });
+
+        if (formValues) {
+            try {
+                const newClient = await createClient(formValues);
+                const clientOption = { value: newClient.id, label: `${newClient.nombre} ${newClient.telefono ? `- ${newClient.telefono}` : ''}` };
+                
+                setClientes(prev => [...prev, newClient]);
+                setSelectedCliente(clientOption);
+
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: 'Cliente registrado correctamente',
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    customClass: { popup: 'my-swal-bg' }
+                });
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error',
+                    text: error.response?.data?.error || 'Hubo un problema al registrar el cliente',
+                    icon: 'error',
+                    customClass: { popup: 'my-swal-bg', confirmButton: 'my-swal-confirm' }
+                });
+            }
+        }
+    };
 
     const handleCompleteSale = async () => {
 
@@ -661,15 +724,27 @@ const SalesPage = () => {
                                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                                     <User size={14} /> Seleccionar Cliente {tipoVenta === 'credito' ? '*' : '(Opcional)'}
                                 </label>
-                                <Select
-                                    classNamePrefix="react-select"
-                                    placeholder="Buscar cliente..."
-                                    isClearable
-                                    options={clientes.map(c => ({ value: c.id, label: `${c.nombre} ${c.telefono ? `- ${c.telefono}` : ''}` }))}
-                                    value={selectedCliente}
-                                    onChange={setSelectedCliente}
-                                    noOptionsMessage={() => "No se encontraron clientes"}
-                                />
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <Select
+                                            classNamePrefix="react-select"
+                                            placeholder="Buscar cliente..."
+                                            isClearable
+                                            options={clientes.map(c => ({ value: c.id, label: `${c.nombre} ${c.telefono ? `- ${c.telefono}` : ''}` }))}
+                                            value={selectedCliente}
+                                            onChange={setSelectedCliente}
+                                            noOptionsMessage={() => "No se encontraron clientes"}
+                                        />
+                                    </div>
+                                    <button 
+                                        className="btn-primary" 
+                                        onClick={handleAddClient}
+                                        style={{ padding: '0 1rem', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        title="Agregar nuevo cliente"
+                                    >
+                                        <UserPlus size={18} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="form-group" style={{ marginBottom: '1rem' }}>
