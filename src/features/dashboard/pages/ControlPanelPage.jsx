@@ -404,17 +404,8 @@ const ControlPanelPage = () => {
                 )}
             </div>
 
-            {/* ════════════════ 3. PRODUCTOS ════════════════ */}
-            <SectionTitle icon={Package} title="Productos" />
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
-                <KpiCard icon={Package} iconBg="linear-gradient(135deg, #6366f1, #4f46e5)" label="Total Productos" value={stats?.productos?.totalProductos} prefix="" suffix="" loading={loading} />
-                <KpiCard icon={DollarSign} iconBg="linear-gradient(135deg, #ec4899, #db2777)" label="Costo Total Inventario" value={stats?.productos?.valorInventario} prefix="Bs " suffix="" loading={loading} />
-                <KpiCard icon={AlertTriangle} iconBg="linear-gradient(135deg, #ef4444, #dc2626)" label="Stock Bajo" value={stats?.productos?.lowStock?.length} prefix="" suffix={stats?.productos?.lowStock?.length === 1 ? ' producto' : ' productos'} loading={loading} />
-            </div>
-
             {/* Low Stock List */}
-            <div style={{ ...panelStyle, marginTop: '1.25rem' }}>
+            <div style={{ ...panelStyle, marginTop: '1.25rem', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <p style={{ fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Stock Crítico</p>
                     <AlertTriangle size={18} color="#ef4444" />
@@ -514,13 +505,7 @@ const ControlPanelPage = () => {
                 </div>
             </div>
 
-            {/* ════════════════ 5. COMPARACIONES Y TENDENCIAS ════════════════ */}
-            <SectionTitle icon={TrendingUp} title="Comparaciones vs Período Anterior" />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                <TrendCard label="Ventas (Monto)" current={stats?.comparaciones?.ventasMes} previous={stats?.comparaciones?.ventasMesAnterior} prefix="Bs " loading={loading} />
-                <TrendCard label="Compras (Monto)" current={stats?.comparaciones?.comprasMes} previous={stats?.comparaciones?.comprasMesAnterior} prefix="Bs " loading={loading} />
-            </div>
         </div>
     );
 };
