@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import useCredits from '../hooks/useCredits';
 import { Search, Info, DollarSign, CalendarClock, Clock, CheckCircle, AlertTriangle, Calendar as CalendarIcon, X } from 'lucide-react';
 import PaymentModal from '../components/PaymentModal';
+import CreditDetailsModal from '../components/CreditDetailsModal';
 import Swal from 'sweetalert2';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import es from 'date-fns/locale/es';
@@ -35,6 +36,13 @@ const DatePickerStyles = () => (
         .react-datepicker-wrapper {
             width: auto;
         }
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .data-table tbody tr:hover {
+            background-color: var(--bg-secondary);
+        }
     `}</style>
 );
 
@@ -44,6 +52,9 @@ const CreditsPage = () => {
     const [statusFilter, setStatusFilter] = useState('todo');
     const [selectedCredit, setSelectedCredit] = useState(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    
+    const [selectedCreditDetails, setSelectedCreditDetails] = useState(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     
     // Date filter state
     const [startDate, setStartDate] = useState(null);
@@ -74,6 +85,11 @@ const CreditsPage = () => {
         const sDate = startDate ? format(startDate, 'yyyy-MM-dd') : null;
         const eDate = endDate ? format(endDate, 'yyyy-MM-dd') : null;
         fetchCredits(statusFilter, sDate, eDate);
+    };
+
+    const handleOpenDetails = (credit) => {
+        setSelectedCreditDetails(credit);
+        setIsDetailsModalOpen(true);
     };
 
     const filteredCredits = credits.filter(c => 
@@ -212,7 +228,7 @@ const CreditsPage = () => {
                             filteredCredits.map(credit => {
                                 const statusInfo = getStatusInfo(credit.estado, credit.fecha_vencimiento);
                                 return (
-                                    <tr key={credit.id}>
+                                    <tr key={credit.id} onClick={() => handleOpenDetails(credit)}>
                                         <td>
                                             <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}># {credit.venta_id}</div>
                                             {credit.productos && (
@@ -242,7 +258,10 @@ const CreditsPage = () => {
                                             <button 
                                                 className="btn-primary" 
                                                 style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                                                onClick={() => handleOpenPayment(credit)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleOpenPayment(credit);
+                                                }}
                                                 disabled={credit.estado === 'pagado'}
                                             >
                                                 Abonar
@@ -262,6 +281,14 @@ const CreditsPage = () => {
                     onClose={() => setIsPaymentModalOpen(false)}
                     credit={selectedCredit}
                     onSuccess={handlePaymentSuccess}
+                />
+            )}
+
+            {selectedCreditDetails && (
+                <CreditDetailsModal 
+                    isOpen={isDetailsModalOpen}
+                    onClose={() => setIsDetailsModalOpen(false)}
+                    credit={selectedCreditDetails}
                 />
             )}
         </div>
