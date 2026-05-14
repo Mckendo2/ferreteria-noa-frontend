@@ -46,8 +46,8 @@ const CreditsPage = () => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     
     // Date filter state
-    const [startDate, setStartDate] = useState(startOfMonth(new Date()));
-    const [endDate, setEndDate] = useState(endOfMonth(new Date()));
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
 
     useEffect(() => {
         const sDate = startDate ? format(startDate, 'yyyy-MM-dd') : null;
@@ -71,7 +71,9 @@ const CreditsPage = () => {
 
     const handlePaymentSuccess = () => {
         setIsPaymentModalOpen(false);
-        fetchCredits(statusFilter); // Refresh list
+        const sDate = startDate ? format(startDate, 'yyyy-MM-dd') : null;
+        const eDate = endDate ? format(endDate, 'yyyy-MM-dd') : null;
+        fetchCredits(statusFilter, sDate, eDate);
     };
 
     const filteredCredits = credits.filter(c => 
