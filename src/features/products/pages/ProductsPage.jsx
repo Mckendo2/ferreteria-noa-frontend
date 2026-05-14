@@ -399,7 +399,17 @@ const ProductsPage = () => {
                                 const margin = (currentVenta - currentCompra).toFixed(2);
                                 
                                 return (
-                                    <tr key={product.id} style={{ borderBottom: '1px solid var(--border-light)', background: editedProducts[product.id] ? 'rgba(0, 112, 243, 0.05)' : 'transparent', transition: 'background 0.2s' }}>
+                                    <tr 
+                                        key={product.id} 
+                                        onClick={() => handleOpenDetail(product)}
+                                        style={{ 
+                                            borderBottom: '1px solid var(--border-light)', 
+                                            background: editedProducts[product.id] ? 'rgba(0, 112, 243, 0.05)' : 'transparent', 
+                                            transition: 'background 0.2s',
+                                            cursor: 'pointer'
+                                        }}
+                                        className="product-row"
+                                    >
                                         <td style={{ padding: '1rem' }}>
                                             {product.imagen ? (
                                                 <img 
@@ -425,6 +435,7 @@ const ProductsPage = () => {
                                                 min="0"
                                                 value={currentCompra}
                                                 onChange={(e) => handleEditChange(product.id, 'precio_compra', e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
                                                 style={{ width: '90px', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-light)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                                             />
                                         </td>
@@ -435,6 +446,7 @@ const ProductsPage = () => {
                                                 min="0"
                                                 value={currentVenta}
                                                 onChange={(e) => handleEditChange(product.id, 'precio_venta', e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
                                                 style={{ width: '90px', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-light)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                                             />
                                         </td>
@@ -444,6 +456,7 @@ const ProductsPage = () => {
                                                 min="0"
                                                 value={currentStock}
                                                 onChange={(e) => handleEditChange(product.id, 'stock', e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
                                                 style={{ width: '80px', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-light)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                                             />
                                         </td>
@@ -454,8 +467,8 @@ const ProductsPage = () => {
                                         </td>
                                         <td style={{ padding: '1rem' }}>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button className="icon-btn" title="Ver detalles" onClick={() => handleOpenDetail(product)}><Eye size={18} /></button>
-                                                <button className="icon-btn" title="Editar completo" onClick={() => handleOpenEdit(product)}><Edit size={18} /></button>
+                                                <button className="icon-btn" title="Ver detalles" onClick={(e) => { e.stopPropagation(); handleOpenDetail(product); }}><Eye size={18} /></button>
+                                                <button className="icon-btn" title="Editar completo" onClick={(e) => { e.stopPropagation(); handleOpenEdit(product); }}><Edit size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>

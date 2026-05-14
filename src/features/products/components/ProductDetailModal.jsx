@@ -127,6 +127,15 @@ const ProductDetailModal = ({ isOpen, onClose, product, categoryName }) => {
                             </div>
                             <div className="stat-value" style={{ fontSize: '1.5rem' }}>{product.stock_minimo || 5}</div>
                         </div>
+
+                        <div className="stat-card" style={{ padding: '1.25rem', background: 'rgba(0, 223, 216, 0.05)', border: '1px solid rgba(0, 223, 216, 0.2)' }}>
+                            <div className="stat-card-header" style={{ marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--accent-mint)' }}>Costo Total Inventario</span>
+                            </div>
+                            <div className="stat-value" style={{ fontSize: '1.5rem', color: 'var(--accent-mint)' }}>
+                                Bs {((parseFloat(product.precio_compra) || 0) * (parseInt(product.stock) || 0)).toFixed(2)}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Timestamps */}
