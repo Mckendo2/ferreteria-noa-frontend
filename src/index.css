@@ -2097,9 +2097,9 @@ textarea.form-textarea:focus {
   line-height: 1.3;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  min-height: 2.6em;
+  min-height: 3.9em;
 }
 
 .sales-card-category {
@@ -2263,9 +2263,11 @@ textarea.form-textarea:focus {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
-  white-space: nowrap;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .sales-cart-item-price {
@@ -2559,7 +2561,8 @@ textarea.form-textarea:focus {
 
   .sales-card-name {
     font-size: 0.75rem;
-    min-height: 2em;
+    -webkit-line-clamp: 3;
+    min-height: 3.9em;
   }
 
   .sales-card-price {

@@ -525,16 +525,16 @@ const SalesPage = () => {
                                                 <span>{inCart.cantidad}</span>
                                             </div>
                                         )}
-                                        <div className={`sales-card-stock-badge ${isOutOfStock ? 'empty' : ''}`} style={isOutOfStock ? { background: 'var(--danger-red)' } : {}}>
-                                            {isOutOfStock ? 'Agotado' : `${product.stock} uds`}
+                                        <div className={`sales-card-stock-badge ${isOutOfStock ? 'empty' : ''}`} style={isOutOfStock ? { background: 'var(--danger-red)' } : {}} translate="no">
+                                            {isOutOfStock ? 'Agotado' : `${product.stock} unid.`}
                                         </div>
                                     </div>
                                     <div className="sales-card-info">
-                                        <span className="sales-card-name">{product.nombre}</span>
+                                        <span className="sales-card-name" title={product.nombre} translate="no">{product.nombre}</span>
                                         {product.categoria_nombre && (
-                                            <span className="sales-card-category">{product.categoria_nombre}</span>
+                                            <span className="sales-card-category" translate="no">{product.categoria_nombre}</span>
                                         )}
-                                        <span className="sales-card-price">Bs {parseFloat(product.precio_venta).toFixed(2)}</span>
+                                        <span className="sales-card-price" translate="no">Bs {parseFloat(product.precio_venta).toFixed(2)}</span>
                                     </div>
                                 </div>
                             );
@@ -582,7 +582,7 @@ const SalesPage = () => {
                                         )}
                                     </div>
                                     <div className="sales-cart-item-details">
-                                        <span className="sales-cart-item-name">{item.nombre}</span>
+                                        <span className="sales-cart-item-name" translate="no">{item.nombre}</span>
                                         <span className="sales-cart-item-price">Bs {Number(item.precio).toFixed(2)}</span>
                                     </div>
                                     <div className="sales-cart-item-qty">

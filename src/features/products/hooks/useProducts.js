@@ -3,6 +3,8 @@ import { getProducts, deleteProduct as deleteProductApi } from '../services/prod
 import { getCategories } from '../../categories/services/categoryService';
 import Swal from 'sweetalert2';
 
+import { normalizeForSearch } from '../../../utils/searchUtils';
+
 const useProducts = () => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -47,10 +49,10 @@ const useProducts = () => {
         let result = [...products];
 
         if (searchTerm) {
-            const term = searchTerm.toLowerCase();
+            const term = normalizeForSearch(searchTerm);
             result = result.filter(p =>
-                (p.nombre?.toLowerCase?.() || '').includes(term) ||
-                (p.codigo_barras?.toLowerCase?.() || '').includes(term)
+                normalizeForSearch(p.nombre).includes(term) ||
+                normalizeForSearch(p.codigo_barras).includes(term)
             );
         }
 

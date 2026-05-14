@@ -409,7 +409,7 @@ const ControlPanelPage = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
                 <KpiCard icon={Package} iconBg="linear-gradient(135deg, #6366f1, #4f46e5)" label="Total Productos" value={stats?.productos?.totalProductos} prefix="" suffix="" loading={loading} />
-                <KpiCard icon={DollarSign} iconBg="linear-gradient(135deg, #ec4899, #db2777)" label="Valor del Inventario" value={stats?.productos?.valorInventario} prefix="Bs " suffix="" loading={loading} />
+                <KpiCard icon={DollarSign} iconBg="linear-gradient(135deg, #ec4899, #db2777)" label="Costo Total Inventario" value={stats?.productos?.valorInventario} prefix="Bs " suffix="" loading={loading} />
                 <KpiCard icon={AlertTriangle} iconBg="linear-gradient(135deg, #ef4444, #dc2626)" label="Stock Bajo" value={stats?.productos?.lowStock?.length} prefix="" suffix={stats?.productos?.lowStock?.length === 1 ? ' producto' : ' productos'} loading={loading} />
             </div>
 

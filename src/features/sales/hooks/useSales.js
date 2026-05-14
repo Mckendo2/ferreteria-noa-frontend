@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getAvailableProducts } from '../services/saleService';
 
+import { normalizeForSearch } from '../../../utils/searchUtils';
+
 const useSales = () => {
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
@@ -32,11 +34,11 @@ const useSales = () => {
 
         // 1. Filter by search term
         if (searchTerm.trim()) {
-            const term = searchTerm.toLowerCase();
+            const term = normalizeForSearch(searchTerm);
             result = result.filter(p =>
-                p.nombre.toLowerCase().includes(term) ||
-                (p.codigo_barras && p.codigo_barras.toLowerCase().includes(term)) ||
-                (p.categoria_nombre && p.categoria_nombre.toLowerCase().includes(term))
+                normalizeForSearch(p.nombre).includes(term) ||
+                normalizeForSearch(p.codigo_barras).includes(term) ||
+                normalizeForSearch(p.categoria_nombre).includes(term)
             );
         }
 
