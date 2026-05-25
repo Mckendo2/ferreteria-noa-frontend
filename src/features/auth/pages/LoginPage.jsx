@@ -71,14 +71,17 @@ const LoginPage = () => {
                                 onClick={() => setShowPassword(!showPassword)}
                                 style={{
                                     position: 'absolute',
-                                    right: '10px',
+                                    right: '12px',
                                     top: '50%',
                                     transform: 'translateY(-50%)',
-                                    background: 'none',
+                                    background: 'transparent',
                                     border: 'none',
                                     cursor: 'pointer',
                                     padding: '0',
-                                    color: 'var(--text-secondary, #666)',
+                                    margin: '0',
+                                    width: 'auto',
+                                    boxShadow: 'none',
+                                    color: 'var(--text-secondary, #999)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center'
