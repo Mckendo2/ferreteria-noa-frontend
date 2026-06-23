@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const formatCurrency = (value) => {
     return parseFloat(value || 0).toLocaleString('es-BO', {
@@ -104,7 +104,7 @@ export const generateMovementsPDF = (movements, startDate, endDate, totals) => {
     ]);
 
     // Table Generation
-    doc.autoTable({
+    autoTable(doc, {
         startY: 55,
         head: [['Fecha y Hora', 'Concepto / Producto', 'Cliente', 'Método', 'Estado', 'Valor', 'Ganancia']],
         body: tableBody,
