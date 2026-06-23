@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Select from 'react-select';
 import useMovements from '../hooks/useMovements';
 import CountUp from 'react-countup';
-import { ShoppingBag, ShoppingCart, ArrowLeftRight, TrendingDown, Banknote, Calendar, X, Package, Clock, User, CreditCard, CheckCircle, FileText, Edit } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, ArrowLeftRight, TrendingDown, Banknote, Calendar, X, Package, Clock, User, CreditCard, CheckCircle, FileText, Edit, Download } from 'lucide-react';
 import { getSaleById } from '../../sales/services/saleService';
 import { generateSalePDF } from '../../sales/utils/salePdfGenerator';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -12,6 +12,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import es from 'date-fns/locale/es';
 import EditSaleView from '../components/EditSaleView';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx-js-style';
 
 registerLocale('es', es);
 
@@ -296,6 +297,72 @@ const MovementsPage = () => {
         setTimeout(() => setSelectedSale(null), 400); // Wait for animation
     };
 
+    const handleExportExcel = () => {
+        if (!movements || movements.length === 0) {
+            Swal.fire({
+                title: 'Atención',
+                text: 'No hay datos para exportar en el período seleccionado.',
+                icon: 'warning',
+                customClass: {
+                    popup: 'my-swal-bg',
+                    confirmButton: 'my-swal-confirm'
+                }
+            });
+            return;
+        }
+
+        const dataRows = movements.map(mov => ({
+            'Concepto': mov.concepto || '',
+            'Cantidad': mov.cantidad || 0,
+            'Cliente': mov.cliente || 'Consumidor Final',
+            'Valor (Bs)': parseFloat(mov.valor) || 0,
+            'Medio de Pago': getPaymentLabel(mov.metodo_pago),
+            'Fecha y Hora': formatDateTime(mov.fecha),
+            'Estado': mov.estado || 'Pagada',
+            'Ganancia (Bs)': parseFloat(mov.ganancia) || 0
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dataRows);
+
+        // Styling headers
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const address = XLSX.utils.encode_col(C) + "1";
+            if (!ws[address]) continue;
+            ws[address].s = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "334155" } }, // dark blue/gray
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+        }
+
+        // Adjust column widths
+        ws['!cols'] = [
+            { wch: 40 }, // Concepto
+            { wch: 10 }, // Cantidad
+            { wch: 25 }, // Cliente
+            { wch: 15 }, // Valor
+            { wch: 15 }, // Medio de pago
+            { wch: 20 }, // Fecha y Hora
+            { wch: 12 }, // Estado
+            { wch: 15 }, // Ganancia
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Movimientos");
+        
+        let filename = 'Movimientos';
+        if (startDate && endDate) {
+            filename += `_${startDate}_al_${endDate}`;
+        } else if (startDate) {
+            filename += `_desde_${startDate}`;
+        } else {
+            filename += `_Historico`;
+        }
+        
+        XLSX.writeFile(wb, `${filename}.xlsx`);
+    };
+
     // Handle returning from SalesPage
     React.useEffect(() => {
         if (location.state?.saleUpdateSuccess) {
@@ -453,6 +520,38 @@ const MovementsPage = () => {
                             minDate={startDate ? new Date(startDate + "T00:00:00") : null}
                         />
                     </div>
+                </div>
+
+                <div style={{ marginLeft: 'auto' }}>
+                    <button 
+                        onClick={handleExportExcel}
+                        className="btn-export-excel"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            background: 'var(--success-green)',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.6rem 1.2rem',
+                            borderRadius: '10px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 6px rgba(34, 197, 94, 0.2)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 12px rgba(34, 197, 94, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 6px rgba(34, 197, 94, 0.2)';
+                        }}
+                    >
+                        <Download size={18} />
+                        Exportar Excel
+                    </button>
                 </div>
             </div>
 
