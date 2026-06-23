@@ -99,14 +99,13 @@ export const generateMovementsPDF = (movements, startDate, endDate, totals) => {
         mov.cliente || 'Consumidor Final',
         getPaymentLabel(mov.metodo_pago),
         mov.estado || 'Pagada',
-        `Bs ${formatCurrency(mov.valor)}`,
-        `Bs ${formatCurrency(mov.ganancia || 0)}`
+        `Bs ${formatCurrency(mov.valor)}`
     ]);
 
     // Table Generation
     autoTable(doc, {
         startY: 55,
-        head: [['Fecha y Hora', 'Concepto / Producto', 'Cliente', 'Método', 'Estado', 'Valor', 'Ganancia']],
+        head: [['Fecha y Hora', 'Concepto / Producto', 'Cliente', 'Método', 'Estado', 'Valor']],
         body: tableBody,
         theme: 'grid',
         headStyles: {
@@ -129,8 +128,7 @@ export const generateMovementsPDF = (movements, startDate, endDate, totals) => {
             2: { cellWidth: 45 },
             3: { cellWidth: 25, halign: 'center' },
             4: { cellWidth: 25, halign: 'center' },
-            5: { cellWidth: 25, halign: 'right' },
-            6: { cellWidth: 25, halign: 'right', textColor: [34, 197, 94] } // Green for profit
+            5: { cellWidth: 25, halign: 'right' }
         },
         margin: { top: 55, left: 14, right: 14 },
         didParseCell: function(data) {
