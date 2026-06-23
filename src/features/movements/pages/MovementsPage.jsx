@@ -12,7 +12,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import es from 'date-fns/locale/es';
 import EditSaleView from '../components/EditSaleView';
 import Swal from 'sweetalert2';
-import * as XLSX from 'xlsx-js-style';
+import { generateMovementsPDF } from '../utils/movementsPdfGenerator';
 
 registerLocale('es', es);
 
@@ -212,6 +212,34 @@ const DatePickerStyles = () => (
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.35);
         }
+
+        .btn-export-pdf {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2), 0 2px 4px -1px rgba(220, 38, 38, 0.1);
+        }
+        .btn-export-pdf:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.3), 0 4px 6px -2px rgba(220, 38, 38, 0.2);
+        }
+        body.light-mode .btn-export-pdf {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.25);
+        }
+        body.light-mode .btn-export-pdf:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            box-shadow: 0 10px 20px -5px rgba(220, 38, 38, 0.35);
+        }
     `}</style>
 );
 
@@ -297,7 +325,7 @@ const MovementsPage = () => {
         setTimeout(() => setSelectedSale(null), 400); // Wait for animation
     };
 
-    const handleExportExcel = () => {
+    const handleExportPDF = () => {
         if (!movements || movements.length === 0) {
             Swal.fire({
                 title: 'Atención',
@@ -311,56 +339,11 @@ const MovementsPage = () => {
             return;
         }
 
-        const dataRows = movements.map(mov => ({
-            'Concepto': mov.concepto || '',
-            'Cantidad': mov.cantidad || 0,
-            'Cliente': mov.cliente || 'Consumidor Final',
-            'Valor (Bs)': parseFloat(mov.valor) || 0,
-            'Medio de Pago': getPaymentLabel(mov.metodo_pago),
-            'Fecha y Hora': formatDateTime(mov.fecha),
-            'Estado': mov.estado || 'Pagada',
-            'Ganancia (Bs)': parseFloat(mov.ganancia) || 0
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(dataRows);
-
-        // Styling headers
-        const range = XLSX.utils.decode_range(ws['!ref']);
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const address = XLSX.utils.encode_col(C) + "1";
-            if (!ws[address]) continue;
-            ws[address].s = {
-                font: { bold: true, color: { rgb: "FFFFFF" } },
-                fill: { fgColor: { rgb: "334155" } }, // dark blue/gray
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-        }
-
-        // Adjust column widths
-        ws['!cols'] = [
-            { wch: 40 }, // Concepto
-            { wch: 10 }, // Cantidad
-            { wch: 25 }, // Cliente
-            { wch: 15 }, // Valor
-            { wch: 15 }, // Medio de pago
-            { wch: 20 }, // Fecha y Hora
-            { wch: 12 }, // Estado
-            { wch: 15 }, // Ganancia
-        ];
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Movimientos");
-        
-        let filename = 'Movimientos';
-        if (startDate && endDate) {
-            filename += `_${startDate}_al_${endDate}`;
-        } else if (startDate) {
-            filename += `_desde_${startDate}`;
-        } else {
-            filename += `_Historico`;
-        }
-        
-        XLSX.writeFile(wb, `${filename}.xlsx`);
+        generateMovementsPDF(movements, startDate, endDate, {
+            ventas: totalVentas,
+            gastos: totalGastos,
+            balance: balance
+        });
     };
 
     // Handle returning from SalesPage
@@ -524,33 +507,11 @@ const MovementsPage = () => {
 
                 <div style={{ marginLeft: 'auto' }}>
                     <button 
-                        onClick={handleExportExcel}
-                        className="btn-export-excel"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            background: 'var(--success-green)',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.6rem 1.2rem',
-                            borderRadius: '10px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 6px rgba(34, 197, 94, 0.2)'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 6px 12px rgba(34, 197, 94, 0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 4px 6px rgba(34, 197, 94, 0.2)';
-                        }}
+                        onClick={handleExportPDF}
+                        className="btn-export-pdf"
                     >
                         <Download size={18} />
-                        Exportar Excel
+                        Exportar PDF
                     </button>
                 </div>
             </div>
