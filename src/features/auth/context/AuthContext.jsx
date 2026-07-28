@@ -132,12 +132,6 @@ export const AuthProvider = ({ children }) => {
         return userData;
     }, []);
 
-    const logout = useCallback(() => {
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
-        setUser(null);
-        clearSessionTimers();
-    }, [clearSessionTimers]);
 
     // Check if user has a specific permission by slug
     const hasPermission = (slug) => {
