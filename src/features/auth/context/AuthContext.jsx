@@ -40,6 +40,13 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const logout = useCallback(() => {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        setUser(null);
+        clearSessionTimers();
+    }, [clearSessionTimers]);
+
     const handleSessionExpiration = useCallback((message) => {
         logout();
         Swal.fire({
