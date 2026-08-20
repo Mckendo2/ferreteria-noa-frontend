@@ -4071,18 +4071,194 @@ textarea.form-textarea:focus {
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
+
+/* Tablet: 768px – 1024px */
+@media (max-width: 1024px) {
+  .quote-new-layout {
+    grid-template-columns: 1fr 320px;
+    gap: 1rem;
+  }
+}
+
+/* Mobile: ≤ 768px */
+@media (max-width: 768px) {
+  /* Page header */
+  .quotations-page .page-header h2 {
+    font-size: 1.1rem;
+  }
+
+  /* Tabs — fill full width */
+  .quote-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quote-tab-btn {
+    justify-content: center;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.82rem;
+    gap: 0.35rem;
+  }
+
+  /* Nueva cotización — stack vertically */
   .quote-new-layout {
     grid-template-columns: 1fr;
+    gap: 1rem;
+    overflow: visible;
+    flex: none;
+    height: auto;
+  }
+
+  /* Products panel — compact height */
+  .quote-products-panel {
+    max-height: 42vh;
+    min-height: 220px;
+  }
+
+  .quote-products-panel .sales-products-grid {
+    padding: 0.75rem;
+  }
+
+  /* Cart panel — no fixed overflow, auto height */
+  .quote-cart-panel {
+    max-height: none;
     overflow: visible;
   }
 
-  .quote-products-panel {
-    max-height: 50vh;
+  .quote-cart-panel .sales-cart-items {
+    max-height: 260px;
+    overflow-y: auto;
   }
 
+  .quote-cart-footer {
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  /* Cart item responsive layout */
+  .sales-cart-item {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.5rem;
+  }
+
+  .sales-cart-item-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sales-cart-item-name {
+    font-size: 0.78rem;
+  }
+
+  /* History toolbar — stack vertically */
   .quote-history-toolbar {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 0.65rem;
   }
-}
+
+  .quote-history-toolbar .sales-search-wrapper {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  /* Filter pills — wrap on small screens */
+  .quote-filter-tabs {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .quote-filter-pill {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  /* History table — horizontal scroll */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+
+  .quote-history-table {
+    min-width: 640px;
+    border-radius: 0;
+  }
+
+  .quote-history-table thead th {
+    padding: 0.7rem 0.6rem;
+    font-size: 0.65rem;
+  }
+
+  .quote-history-table tbody td {
+    padding: 0.7rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  /* Hide less-critical columns on small screens */
+  .quote-history-table .col-note {
+    display: none;
+  }
+
+  /* Action buttons — tighter */
+  .quote-action-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .quote-actions {
+    gap: 0.25rem;
+  }
+
+  /* Expanded detail */
+  .quote-detail-expanded {
+    padding: 0.75rem 1rem;
+  }
+
+  .quote-detail-table th,
+  .quote-detail-table td {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  /* Summary */
+  .quote-summary {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .quote-summary-row {
+    font-size: 0.82rem;
+  }
+
+  .quote-summary-total {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small: ≤ 480px */
+@media (max-width: 480px) {
+  .quote-tab-btn {
+    font-size: 0.78rem;
+    padding: 0.45rem 0.25rem;
+    gap: 0.25rem;
+  }
+
+  .quote-history-table {
+    min-width: 560px;
+  }
+
+  /* Hide adelanto column — too narrow */
+  .quote-col-adelanto {
+    display: none;
+  }
+
+  .quote-products-panel {
+    max-height: 38vh;
+  }
+
+  .quote-cart-panel .sales-cart-items {
+    max-height: 200px;
+  }
+}
+

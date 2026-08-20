@@ -857,7 +857,7 @@ const QuotationsPage = () => {
                                         <th>Fecha</th>
                                         <th>Cliente</th>
                                         <th>Total</th>
-                                        <th>Adelanto</th>
+                                        <th className="quote-col-adelanto">Adelanto</th>
                                         <th>Saldo</th>
                                         <th>Estado</th>
                                         <th style={{ textAlign: 'center' }}>Acciones</th>
@@ -891,7 +891,7 @@ const QuotationsPage = () => {
                                                     )}
                                                 </td>
                                                 <td style={{ fontWeight: 600 }}>Bs {parseFloat(quote.total).toFixed(2)}</td>
-                                                <td style={{ color: 'var(--accent-mint)' }}>
+                                                <td className="quote-col-adelanto" style={{ color: 'var(--accent-mint)' }}>
                                                     {parseFloat(quote.adelanto) > 0
                                                         ? `Bs ${parseFloat(quote.adelanto).toFixed(2)}`
                                                         : <span style={{ color: 'var(--text-secondary)' }}>—</span>}
