@@ -22,6 +22,7 @@ import PermissionsPage from '../features/permissions/pages/PermissionsPage';
 import AuditPage from '../features/audit/pages/AuditPage';
 import ReportsPage from '../features/reports/pages/ReportsPage';
 import LandingPage from '../features/landing/pages/LandingPage';
+import QuotationsPage from '../features/quotations/pages/QuotationsPage';
 
 const PrivateRoute = ({ children, permission }) => {
     const { user, hasPermission } = useAuth();
@@ -42,6 +43,7 @@ const AppRouter = () => {
             <Route path="/usuarios" element={<PrivateRoute permission="ver_usuarios"><UsersPage /></PrivateRoute>} />
             <Route path="/roles" element={<PrivateRoute permission="ver_roles"><RolePage /></PrivateRoute>} />
             <Route path="/ventas" element={<PrivateRoute permission="crear_ventas"><SalesPage /></PrivateRoute>} />
+            <Route path="/cotizaciones" element={<PrivateRoute permission="crear_ventas"><QuotationsPage /></PrivateRoute>} />
             <Route path="/compras" element={<PrivateRoute permission="ver_compras"><PurchasesPage /></PrivateRoute>} />
             <Route path="/clientes" element={<PrivateRoute permission="ver_clientes"><ClientsPage /></PrivateRoute>} />
             <Route path="/proveedores" element={<PrivateRoute permission="ver_proveedores"><ProvidersPage /></PrivateRoute>} />

@@ -3687,3 +3687,402 @@ textarea.form-textarea:focus {
     font-size: 1.2rem !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* ── MÓDULO DE COTIZACIONES ─────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+.quotations-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+.quote-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 0.35rem;
+  width: fit-content;
+}
+
+.quote-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.25rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quote-tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+}
+
+.quote-tab-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-dark);
+  font-weight: 600;
+}
+
+/* ── Nueva Cotización – Two-column layout ────────────────────────────────── */
+.quote-new-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.quote-products-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.quote-products-header {
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.quote-products-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.quote-products-panel .sales-products-grid {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.quote-cart-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.quote-cart-panel .sales-cart-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.quote-cart-footer {
+  padding: 1rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--border-light);
+}
+
+/* ── Summary totals ──────────────────────────────────────────────────────── */
+.quote-summary {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0;
+}
+
+.quote-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.quote-summary-total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-light);
+  padding-top: 0.4rem;
+  margin-top: 0.1rem;
+}
+
+/* ── History panel ───────────────────────────────────────────────────────── */
+.quote-history-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.quote-history-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.quote-filter-tabs {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.quote-filter-pill {
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quote-filter-pill:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.quote-filter-pill.active {
+  background: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Quote table ─────────────────────────────────────────────────────────── */
+.quote-history-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.quote-history-table thead th {
+  background: var(--bg-secondary);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  padding: 0.85rem 1rem;
+  white-space: nowrap;
+}
+
+.quote-history-table tbody td {
+  padding: 0.85rem 1rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.quote-row {
+  transition: background 0.15s ease;
+}
+
+.quote-row:hover {
+  background: rgba(255,255,255,0.025);
+}
+
+.quote-row.expanded {
+  background: rgba(0, 112, 243, 0.04);
+}
+
+.quote-expand-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.quote-expand-btn:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+}
+
+/* ── ID Badge ────────────────────────────────────────────────────────────── */
+.quote-id-badge {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--primary-blue);
+  background: rgba(0, 112, 243, 0.1);
+  border: 1px solid rgba(0, 112, 243, 0.2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ── Status Badges ───────────────────────────────────────────────────────── */
+.quote-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.quote-badge-pending {
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+}
+
+.quote-badge-paid {
+  background: rgba(0, 223, 216, 0.1);
+  color: var(--accent-mint);
+  border: 1px solid rgba(0, 223, 216, 0.3);
+}
+
+.quote-badge-void {
+  background: rgba(238, 0, 0, 0.08);
+  color: var(--danger-red);
+  border: 1px solid rgba(238, 0, 0, 0.2);
+}
+
+/* ── Action Buttons ──────────────────────────────────────────────────────── */
+.quote-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.quote-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.quote-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quote-action-btn.print:hover {
+  background: rgba(0, 112, 243, 0.12);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+.quote-action-btn.pay:hover {
+  background: rgba(0, 223, 216, 0.12);
+  border-color: var(--accent-mint);
+  color: var(--accent-mint);
+}
+
+.quote-action-btn.void:hover {
+  background: rgba(238, 0, 0, 0.1);
+  border-color: var(--danger-red);
+  color: var(--danger-red);
+}
+
+.quote-action-btn.whatsapp:hover {
+  background: rgba(37, 211, 102, 0.12);
+  border-color: #25d366;
+  color: #25d366;
+}
+
+/* ── WhatsApp SweetAlert2 deny button ────────────────────────────────────── */
+.my-swal-whatsapp {
+  background: #25d366 !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 600 !important;
+}
+
+.my-swal-whatsapp:hover {
+  background: #1ebe57 !important;
+}
+
+
+/* ── Expanded detail ─────────────────────────────────────────────────────── */
+.quote-detail-row > td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.quote-detail-expanded {
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  animation: expandFadeIn 0.2s ease;
+}
+
+@keyframes expandFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.quote-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.quote-detail-table th {
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.quote-detail-table td {
+  padding: 0.45rem 0.75rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.quote-detail-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .quote-new-layout {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .quote-products-panel {
+    max-height: 50vh;
+  }
+
+  .quote-history-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
