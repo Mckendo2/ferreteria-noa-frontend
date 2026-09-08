@@ -1,243 +1,243 @@
 import { jsPDF } from 'jspdf';
 
 /**
- * Genera un PDF de VENTA en hoja tamaño carta (216 × 279 mm).
- * Formato basado en el modelo físico de Ferretería NOA.
- *
+ * Genera un PDF de VENTA en hoja tamaño carta para impresora normal.
  * @param {Object}        data
  * @param {number|string} data.ventaId
  * @param {Date|string}   data.fecha
  * @param {string}        data.cliente
- * @param {string}        data.metodoPago   - efectivo | tarjeta | transferencia | Crédito
- * @param {string}        data.tipoVenta    - pagada | credito
- * @param {number}        [data.plazo]      - días de crédito
- * @param {Array}         data.items        - [{nombre, cantidad, precio}]
+ * @param {string}        data.metodoPago   efectivo | tarjeta | transferencia | Crédito
+ * @param {string}        data.tipoVenta    pagada | credito
+ * @param {number}        [data.plazo]
+ * @param {Array}         data.items        [{nombre, cantidad, precio}]
  * @param {number}        data.subtotal
  * @param {number}        data.descuento
  * @param {number}        data.total
  */
 export const generateSalePDF = (data) => {
-    // ── Configuración de página ────────────────────────────────────────────────
     const doc = new jsPDF({ unit: 'mm', format: 'letter', orientation: 'portrait' });
-    const PW = 215.9;
-    const PH = 279.4;
-    const ML = 12;
-    const MR = PW - 12;
-    const CW = MR - ML;
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    // ── Dimensiones de página carta ────────────────────────────────────────────
+    const PH  = 279.4;
+    const ML  = 12;
+    const MR  = 215.9 - 12;   // 203.9
+    const CW  = MR - ML;      // 191.9
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    /** Línea horizontal */
+    const hl = (x1, y, x2, lw = 0.25) => {
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(lw);
+        doc.line(x1, y, x2, y);
+    };
+    /** Línea vertical */
+    const vl = (x, y1, y2, lw = 0.25) => {
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(lw);
+        doc.line(x, y1, x, y2);
+    };
+    /** Rectángulo solo borde */
+    const box = (x, y, w, h, lw = 0.3) => {
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(lw);
+        doc.rect(x, y, w, h, 'S');
+    };
+    /** Rectángulo con fondo */
+    const boxFill = (x, y, w, h, r, g, b, lw = 0.3) => {
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(lw);
+        doc.setFillColor(r, g, b);
+        doc.rect(x, y, w, h, 'FD');
+    };
+    const tL = (txt, x, y, sz = 8, st = 'normal', cr = 0, cg = 0, cb = 0) => {
+        doc.setFontSize(sz);
+        doc.setFont('helvetica', st);
+        doc.setTextColor(cr, cg, cb);
+        doc.text(String(txt ?? ''), x, y);
+    };
+    const tR = (txt, x, y, sz = 8, st = 'normal') => {
+        doc.setFontSize(sz);
+        doc.setFont('helvetica', st);
+        doc.setTextColor(0, 0, 0);
+        doc.text(String(txt ?? ''), x, y, { align: 'right' });
+    };
+    const tC = (txt, cx, y, sz = 8, st = 'normal') => {
+        doc.setFontSize(sz);
+        doc.setFont('helvetica', st);
+        doc.setTextColor(0, 0, 0);
+        doc.text(String(txt ?? ''), cx, y, { align: 'center' });
+    };
+
+    // ── Fecha ──────────────────────────────────────────────────────────────────
     const fechaObj = data.fecha instanceof Date ? data.fecha : new Date(data.fecha);
     const fStr = fechaObj.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const hStr = fechaObj.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
 
-    const line = (x1, y, x2, lw = 0.3) => {
-        doc.setDrawColor(0);
-        doc.setLineWidth(lw);
-        doc.line(x1, y, x2, y);
-    };
-    const rect = (x, y, w, h, lw = 0.3) => {
-        doc.setDrawColor(0);
-        doc.setLineWidth(lw);
-        doc.rect(x, y, w, h);
-    };
-    const txt = (text, x, y, size = 9, style = 'normal', color = [0, 0, 0]) => {
-        doc.setFontSize(size);
-        doc.setFont('helvetica', style);
-        doc.setTextColor(...color);
-        doc.text(String(text ?? ''), x, y);
-    };
-    const txtR = (text, x, y, size = 9, style = 'normal') => {
-        doc.setFontSize(size);
-        doc.setFont('helvetica', style);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(text ?? ''), x, y, { align: 'right' });
-    };
-    const txtC = (text, x, y, w, size = 9, style = 'normal') => {
-        doc.setFontSize(size);
-        doc.setFont('helvetica', style);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(text ?? ''), x + w / 2, y, { align: 'center' });
-    };
-
     // ══════════════════════════════════════════════════════════════════════════
-    // SECCIÓN 1 — ENCABEZADO
+    // BLOQUE 1 — ENCABEZADO
     // ══════════════════════════════════════════════════════════════════════════
     let y = 12;
+    const LOGO_W = 70;
+    const HEAD_H = 38;
 
-    rect(ML, y, CW, 38, 0.5);
+    box(ML, y, CW, HEAD_H, 0.5);
+    vl(ML + LOGO_W, y, y + HEAD_H, 0.4);
 
-    const logoW = 72;
-    line(ML + logoW, y, ML + logoW, y + 38, 0.3);
+    // Columna izquierda
+    tL('FERRETERÍA', ML + 2, y + 8,  13, 'bold');
+    tL('NOA',        ML + 4, y + 19, 20, 'bold');
+    tL('Pedro Luque Cahuana',                   ML + 2, y + 25, 7,   'normal');
+    tL('Av. Las Americas Esq. Huancane N° 395', ML + 2, y + 29, 6.5, 'normal');
+    tL('Villa Fátima  Col: 75848995-76544667',  ML + 2, y + 33, 6.5, 'normal');
+    tL('La Paz - Bolivia',                      ML + 2, y + 37, 6.5, 'normal', 80, 80, 80);
 
-    txt('FERRETERÍA', ML + 3, y + 8, 14, 'bold');
-    txt('""', ML + 3, y + 19, 9, 'normal', [80, 80, 80]);
-    txt('NOA', ML + 10, y + 20, 22, 'bold');
-    txt('""', ML + 34, y + 14, 9, 'normal', [80, 80, 80]);
+    // Columna derecha
+    const RX = ML + LOGO_W + 3;
+    const RW = CW - LOGO_W - 3;
+    tC('VENTA', RX + RW / 2, y + 12, 22, 'bold');
 
-    txt('Pedro Luque Cahuana', ML + 3, y + 26, 7.5, 'normal');
-    txt('Av. Las Americas Esq. Huancane N° 395', ML + 3, y + 30, 6.5, 'normal');
-    txt('Villa Fátima - Col: 75848995-76544667', ML + 3, y + 34, 6.5, 'normal');
-    txt('La Paz - Bolivia', ML + 3, y + 38, 6.5, 'normal', [80, 80, 80]);
+    // Cajitas N°, Fecha, Hora
+    const BY = y + 17;
+    const BH = 7;
+    const NW = 30;
+    const DW = Math.floor((RW - NW - 6) / 2);
+    const HW = RW - NW - DW - 8;
 
-    // Título VENTA (columna derecha)
-    const titleX = ML + logoW + 4;
-    const titleW = CW - logoW - 4;
-    txt('VENTA', titleX + titleW / 2 - 2, y + 18, 24, 'bold');
+    box(RX,              BY, NW,  BH);
+    box(RX + NW + 4,     BY, DW,  BH);
+    box(RX + NW + DW + 8, BY, HW, BH);
 
-    // Campos N°, Fecha y Hora
-    const boxY = y + 22;
-    const boxH = 7;
-    const numW = 28;
-    const dateW = Math.floor((titleW - numW - 2) / 2);
-    const hourW = titleW - numW - dateW - 4;
-
-    rect(titleX, boxY, numW, boxH, 0.3);
-    rect(titleX + numW + 2, boxY, dateW, boxH, 0.3);
-    rect(titleX + numW + dateW + 4, boxY, hourW, boxH, 0.3);
-
-    txt('N°', titleX + 1, boxY + 5, 7, 'bold');
-    txt(String(data.ventaId), titleX + 8, boxY + 5, 8, 'bold');
-    txt('Fecha:', titleX + numW + 3, boxY + 5, 7, 'bold');
-    txt(fStr, titleX + numW + 16, boxY + 5, 7, 'normal');
-    txt('Hora:', titleX + numW + dateW + 5, boxY + 5, 7, 'bold');
-    txt(hStr, titleX + numW + dateW + 15, boxY + 5, 7, 'normal');
+    tL('N°',    RX + 2,          BY + 5, 7,   'bold');
+    tL(String(data.ventaId), RX + 9, BY + 5, 8, 'bold');
+    tL('Fecha:', RX + NW + 5,    BY + 5, 7,   'bold');
+    tL(fStr,    RX + NW + 17,    BY + 5, 7,   'normal');
+    tL('Hora:', RX + NW + DW + 9, BY + 5, 7,  'bold');
+    tL(hStr,   RX + NW + DW + 19, BY + 5, 7,  'normal');
 
     // Método de pago
     const metLabel = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia', 'Crédito': 'Crédito' };
     let pagoText = metLabel[data.metodoPago] || data.metodoPago || '';
     if (data.tipoVenta === 'credito' && data.plazo) pagoText += ` (${data.plazo} días)`;
+    const PY = BY + BH + 2;
+    box(RX, PY, RW - 2, 6);
+    tL('Pago:',  RX + 2,  PY + 4.2, 7,   'bold');
+    tL(pagoText, RX + 14, PY + 4.2, 7.5, 'normal');
 
-    const pY = boxY + boxH + 1;
-    rect(titleX, pY, titleW - 2, 6, 0.3);
-    txt('Pago:', titleX + 1, pY + 4.2, 7, 'bold');
-    txt(pagoText, titleX + 13, pY + 4.2, 7.5, 'normal');
+    y += HEAD_H;
 
-    y += 38;
-
-    // ── Campo SEÑOR(ES) ────────────────────────────────────────────────────
-    y += 5;
-    rect(ML, y, CW, 8, 0.4);
-    txt('SEÑOR (ES)', ML + 2, y + 5.5, 8, 'bold');
-    line(ML + 30, y, ML + 30, y + 8, 0.3);
-    txt(data.cliente || 'Consumidor Final', ML + 33, y + 5.5, 8.5, 'normal');
-    y += 8;
-
-    // Texto introductorio
+    // ── SEÑOR (ES) ─────────────────────────────────────────────────────────────
     y += 4;
-    txt('Detalle de los materiales vendidos:', ML, y + 4, 8, 'normal');
+    box(ML, y, CW, 8, 0.4);
+    vl(ML + 32, y, y + 8, 0.3);
+    tL('SEÑOR (ES)',                       ML + 2,  y + 5.5, 8,   'bold');
+    tL(data.cliente || 'Consumidor Final', ML + 34, y + 5.5, 8.5, 'normal');
     y += 8;
 
+    y += 4;
+    tL('Detalle de los materiales vendidos:', ML, y + 4, 8, 'normal');
+    y += 9;
+
     // ══════════════════════════════════════════════════════════════════════════
-    // SECCIÓN 2 — TABLA DE ÍTEMS
+    // BLOQUE 2 — TABLA
     // ══════════════════════════════════════════════════════════════════════════
-    const tableTop = y;
-    const COL = {
-        n:    { x: ML,       w: 9  },
-        desc: { x: ML + 9,   w: 77 },
-        cant: { x: ML + 86,  w: 16 },
-        pu:   { x: ML + 102, w: 20 },
-        tot:  { x: ML + 122, w: 24 },
-        obs:  { x: ML + 146, w: MR - ML - 146 },
-    };
+    const C_N    = { x: ML,       w: 9  };
+    const C_DESC = { x: ML + 9,   w: 78 };
+    const C_CANT = { x: ML + 87,  w: 17 };
+    const C_PU   = { x: ML + 104, w: 22 };
+    const C_TOT  = { x: ML + 126, w: 26 };
+    const C_OBS  = { x: ML + 152, w: MR - (ML + 152) };
+    const COLS   = [C_N, C_DESC, C_CANT, C_PU, C_TOT, C_OBS];
 
-    const HDR_H = 7;
-    doc.setFillColor(230, 230, 230);
-    doc.rect(ML, tableTop, CW, HDR_H, 'FD');
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.3);
+    const TABLE_TOP  = y;
+    const HDR_H      = 7;
+    const TOTAL_ROW_H = 7;
+    const ROW_H      = 5.5;
+    const FOOTER_TOP = PH - 35;
+    const availH     = FOOTER_TOP - TABLE_TOP - HDR_H - TOTAL_ROW_H;
+    const MAX_ROWS   = Math.max(1, Math.floor(availH / ROW_H));
 
-    Object.values(COL).forEach(c => line(c.x, tableTop, c.x, tableTop + HDR_H));
-    line(MR, tableTop, MR, tableTop + HDR_H);
+    // Cabecera
+    boxFill(ML, TABLE_TOP, CW, HDR_H, 210, 210, 210, 0.4);
+    COLS.forEach(c => vl(c.x, TABLE_TOP, TABLE_TOP + HDR_H, 0.3));
+    vl(MR, TABLE_TOP, TABLE_TOP + HDR_H, 0.3);
 
-    const hy = tableTop + 5;
-    txtC('N°',                  COL.n.x,    hy, COL.n.w,    7, 'bold');
-    txtC('DESCRIPCIÓN / COMPRA',COL.desc.x, hy, COL.desc.w, 7, 'bold');
-    txtC('CANT.',               COL.cant.x, hy, COL.cant.w, 7, 'bold');
-    txtC('P/U',                 COL.pu.x,   hy, COL.pu.w,   7, 'bold');
-    txtC('TOTAL Bs',            COL.tot.x,  hy, COL.tot.w,  7, 'bold');
-    txtC('OBSERVACIÓN',         COL.obs.x,  hy, COL.obs.w,  7, 'bold');
+    const hy = TABLE_TOP + 5;
+    tC('N°',                   C_N.x    + C_N.w / 2,    hy, 7, 'bold');
+    tC('DESCRIPCIÓN / COMPRA', C_DESC.x + C_DESC.w / 2, hy, 7, 'bold');
+    tC('CANT.',                C_CANT.x + C_CANT.w / 2, hy, 7, 'bold');
+    tC('P/U',                  C_PU.x   + C_PU.w / 2,   hy, 7, 'bold');
+    tC('TOTAL Bs',             C_TOT.x  + C_TOT.w / 2,  hy, 7, 'bold');
+    tC('OBSERVACIÓN',          C_OBS.x  + C_OBS.w / 2,  hy, 7, 'bold');
 
-    y = tableTop + HDR_H;
+    y = TABLE_TOP + HDR_H;
 
-    const ROW_H = 5.5;
-    const MAX_ROWS = 34;
-
-    rect(ML, y, CW, MAX_ROWS * ROW_H, 0.4);
-
+    // Filas de datos
     for (let i = 0; i < MAX_ROWS; i++) {
         const ry = y + i * ROW_H;
+
+        hl(ML, ry, MR, 0.2);
+        COLS.forEach(c => vl(c.x, ry, ry + ROW_H, 0.2));
+        vl(MR, ry, ry + ROW_H, 0.2);
+
+        tC(String(i + 1), C_N.x + C_N.w / 2, ry + 3.8, 6.5, 'normal');
+
         const item = data.items[i];
-
-        if (i > 0) line(ML, ry, MR, ry, 0.2);
-
-        Object.values(COL).forEach(c => line(c.x, ry, c.x, ry + ROW_H, 0.2));
-        line(MR, ry, MR, ry + ROW_H, 0.2);
-
-        txtC(String(i + 1), COL.n.x, ry + 3.8, COL.n.w, 6.5, 'normal');
-
         if (item) {
-            const nombre = item.nombre || '';
             doc.setFontSize(7);
             doc.setFont('helvetica', 'normal');
-            const displayName = doc.splitTextToSize(nombre, COL.desc.w - 2)[0];
-            txt(displayName, COL.desc.x + 1, ry + 3.8, 7, 'normal');
-            txtC(String(item.cantidad), COL.cant.x, ry + 3.8, COL.cant.w, 7, 'normal');
-            txtR(Number(item.precio).toFixed(2), COL.pu.x + COL.pu.w - 1, ry + 3.8, 7, 'normal');
-            const sub = (item.cantidad * item.precio).toFixed(2);
-            txtR(sub, COL.tot.x + COL.tot.w - 1, ry + 3.8, 7, 'normal');
-        } else {
-            txtR('0.00', COL.tot.x + COL.tot.w - 1, ry + 3.8, 6.5, 'normal');
-            doc.setTextColor(200, 200, 200);
             doc.setTextColor(0, 0, 0);
+            const nameLine = doc.splitTextToSize(String(item.nombre || ''), C_DESC.w - 2)[0];
+            doc.text(nameLine, C_DESC.x + 1, ry + 3.8);
+
+            tC(String(item.cantidad),                    C_CANT.x + C_CANT.w / 2,  ry + 3.8, 7, 'normal');
+            tR(Number(item.precio).toFixed(2),            C_PU.x + C_PU.w - 1,      ry + 3.8, 7, 'normal');
+            tR((item.cantidad * item.precio).toFixed(2),  C_TOT.x + C_TOT.w - 1,    ry + 3.8, 7, 'normal');
+        } else {
+            tR('0.00', C_TOT.x + C_TOT.w - 1, ry + 3.8, 6.5, 'normal');
         }
     }
 
     y += MAX_ROWS * ROW_H;
+    hl(ML, y, MR, 0.4);
 
-    // ── Fila TOTAL ─────────────────────────────────────────────────────────
-    rect(ML, y, CW, 7, 0.5);
-    Object.values(COL).forEach(c => line(c.x, y, c.x, y + 7));
-    line(MR, y, MR, y + 7);
+    // Fila TOTAL
+    box(ML, y, CW, TOTAL_ROW_H, 0.5);
+    COLS.forEach(c => vl(c.x, y, y + TOTAL_ROW_H, 0.3));
+    vl(MR, y, y + TOTAL_ROW_H, 0.3);
 
-    txtC('TOTAL', COL.n.x, y + 4.8, COL.n.w + COL.desc.w + COL.cant.w + COL.pu.w, 8, 'bold');
-    txtR('Bs ' + Number(data.total).toFixed(2), COL.tot.x + COL.tot.w - 1, y + 4.8, 8, 'bold');
-
+    const labelEndX = C_PU.x + C_PU.w;
+    tC('TOTAL', ML + (labelEndX - ML) / 2, y + 4.8, 8, 'bold');
+    tR('Bs ' + Number(data.total).toFixed(2), C_TOT.x + C_TOT.w - 1, y + 4.8, 8, 'bold');
     if (data.descuento > 0) {
-        txt(`Desc: Bs ${Number(data.descuento).toFixed(2)}`, COL.obs.x + 2, y + 4.8, 7, 'normal');
+        tL('Desc: Bs ' + Number(data.descuento).toFixed(2), C_OBS.x + 2, y + 4.8, 7, 'normal');
     }
-
-    y += 7;
+    y += TOTAL_ROW_H;
 
     // ══════════════════════════════════════════════════════════════════════════
-    // SECCIÓN 3 — PIE DE PÁGINA
+    // BLOQUE 3 — PIE DE PÁGINA FIJO
     // ══════════════════════════════════════════════════════════════════════════
-    const footerY = PH - 28;
+    const FY  = PH - 34;
+    const C3W = CW / 3;
+    const C2W = CW / 2;
+    const FH  = 7;
 
-    const vCol = CW / 3;
+    box(ML, FY, CW, FH, 0.4);
+    vl(ML + C3W, FY, FY + FH, 0.3);
+    vl(ML + C3W * 2, FY, FY + FH, 0.3);
+    tL('COMPROBANTE DE VENTA',           ML + 2,             FY + 4.8, 7,   'bold');
+    tC('¡GRACIAS POR SU COMPRA!',        ML + C3W + C3W / 2, FY + 4.8, 7.5, 'bold');
 
-    // Fila 1
-    rect(ML, footerY, CW, 7, 0.4);
-    line(ML + vCol, footerY, ML + vCol, footerY + 7);
-    line(ML + vCol * 2, footerY, ML + vCol * 2, footerY + 7);
-    txt('COMPROBANTE DE VENTA', ML + 2, footerY + 4.8, 7, 'bold');
-    txtC('¡GRACIAS POR SU COMPRA!', ML + vCol, footerY + 4.8, vCol * 2, 7.5, 'bold');
+    box(ML, FY + FH, CW, FH, 0.4);
+    vl(ML + C3W, FY + FH, FY + FH * 2, 0.3);
+    tL('VÁLIDO COMO COMPROBANTE INTERNO', ML + 2,             FY + FH + 4.8, 7,   'bold');
+    tC('Ferretería NOA',                  ML + C3W + C3W / 2, FY + FH + 4.8, 7.5, 'normal');
 
-    // Fila 2
-    const f2 = footerY + 7;
-    rect(ML, f2, CW, 7, 0.4);
-    line(ML + vCol, f2, ML + vCol, f2 + 7);
-    txt('VÁLIDO COMO COMPROBANTE INTERNO', ML + 2, f2 + 4.8, 7, 'bold');
-    txtC('Ferretería NOA - Su ferretería de confianza', ML + vCol, f2 + 4.8, vCol * 2, 7.5, 'normal');
-
-    // Fila 3
-    const f3 = f2 + 7;
-    rect(ML, f3, CW, 7, 0.4);
-    const half = CW / 2;
-    line(ML + half, f3, ML + half, f3 + 7);
-    txt('CÉDULA DE IDENTIDAD', ML + 2, f3 + 4.8, 7, 'bold');
-    txt('13054654 L-P', ML + half * 0.5, f3 + 4.8, 7.5, 'normal');
-    txt('NIT', ML + half + 2, f3 + 4.8, 7, 'bold');
-    txt('13054654010', ML + half + 15, f3 + 4.8, 7.5, 'normal');
+    box(ML, FY + FH * 2, CW, FH, 0.4);
+    vl(ML + C2W, FY + FH * 2, FY + FH * 3, 0.3);
+    tL('CÉDULA DE IDENTIDAD', ML + 2,          FY + FH * 2 + 4.8, 7,   'bold');
+    tL('13054654 L-P',        ML + C2W * 0.4,  FY + FH * 2 + 4.8, 7.5, 'normal');
+    tL('NIT',                 ML + C2W + 2,    FY + FH * 2 + 4.8, 7,   'bold');
+    tL('13054654010',         ML + C2W + 16,   FY + FH * 2 + 4.8, 7.5, 'normal');
 
     doc.save(`Venta_${data.ventaId}_${fStr.replace(/\//g, '-')}.pdf`);
 };
