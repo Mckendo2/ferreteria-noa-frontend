@@ -155,15 +155,13 @@ export const generateQuotationPDF = (data) => {
 
     y = TABLE_TOP + HDR_H;
 
-    // Cuántas filas caben hasta el footer
-    const FOOTER_TOP = PH - 35;   // footer empieza aquí
-    const TOTAL_ROW_H = 7;        // altura de la fila TOTAL
-    const ROW_H  = 5.5;
-    const availH = FOOTER_TOP - y - TOTAL_ROW_H;
-    const MAX_ROWS = Math.max(1, Math.floor(availH / ROW_H));
+    // Solo las filas con ítems reales
+    const TOTAL_ROW_H = 7;
+    const ROW_H  = 6;
+    const MAX_ROWS = data.items.length;
 
-    // Dibujar filas
-    for (let i = 0; i < MAX_ROWS; i++) {
+    // Dibujar solo las filas con ítems reales
+    data.items.forEach((item, i) => {
         const ry = y + i * ROW_H;
 
         hl(ML, ry, MR, 0.2);
@@ -172,21 +170,16 @@ export const generateQuotationPDF = (data) => {
 
         tC(String(i + 1), C_N.x + C_N.w / 2, ry + 3.8, 6.5, 'normal');
 
-        const item = data.items[i];
-        if (item) {
-            doc.setFontSize(7);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(0, 0, 0);
-            const nameLine = doc.splitTextToSize(String(item.nombre || ''), C_DESC.w - 2)[0];
-            doc.text(nameLine, C_DESC.x + 1, ry + 3.8);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        const nameLine = doc.splitTextToSize(String(item.nombre || ''), C_DESC.w - 2)[0];
+        doc.text(nameLine, C_DESC.x + 1, ry + 3.8);
 
-            tC(String(item.cantidad),               C_CANT.x + C_CANT.w / 2,  ry + 3.8, 7, 'normal');
-            tR(Number(item.precio).toFixed(2),       C_PU.x + C_PU.w - 1,      ry + 3.8, 7, 'normal');
-            tR((item.cantidad * item.precio).toFixed(2), C_TOT.x + C_TOT.w - 1, ry + 3.8, 7, 'normal');
-        } else {
-            tR('0.00', C_TOT.x + C_TOT.w - 1, ry + 3.8, 6.5, 'normal');
-        }
-    }
+        tC(String(item.cantidad),                    C_CANT.x + C_CANT.w / 2,  ry + 3.8, 7, 'normal');
+        tR(Number(item.precio).toFixed(2),            C_PU.x + C_PU.w - 1,      ry + 3.8, 7, 'normal');
+        tR((item.cantidad * item.precio).toFixed(2),  C_TOT.x + C_TOT.w - 1,    ry + 3.8, 7, 'normal');
+    });
 
     y += MAX_ROWS * ROW_H;
 
