@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { normalizeForSearch } from '../../../utils/searchUtils';
 
 const useProducts = () => {
+    const [rawProducts, setRawProducts] = useState([]);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +19,7 @@ const useProducts = () => {
         try {
             const data = await getProducts();
             setProducts(data);
+            setRawProducts(data);
         } catch (error) {
             console.error('Error fetching products:', error);
         }
@@ -106,6 +108,7 @@ const useProducts = () => {
     return {
         products: currentProducts,
         allProducts: processedProducts,
+        rawProducts,
         categories,
         searchTerm,
         setSearchTerm,

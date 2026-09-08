@@ -16,6 +16,7 @@ const ProductsPage = () => {
     const {
         products,
         allProducts,
+        rawProducts,
         categories,
         searchTerm,
         setSearchTerm,
@@ -59,7 +60,10 @@ const ProductsPage = () => {
         setIsSaving(true);
         try {
             const updatePromises = Object.entries(editedProducts).map(async ([id, changes]) => {
-                const original = products.find(p => p.id.toString() === id) || allProducts.find(p => p.id.toString() === id);
+                // Buscar en rawProducts (lista completa sin filtros ni paginación)
+                // para que funcione aunque el producto esté en otra página o haya sido
+                // excluido por el filtro activo al momento de guardar.
+                const original = rawProducts.find(p => p.id.toString() === id);
                 if (!original) return;
 
                 const formDataToSend = new FormData();

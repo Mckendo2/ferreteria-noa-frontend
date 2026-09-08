@@ -1,20 +1,21 @@
 import { jsPDF } from 'jspdf';
 
 /**
- * Generates a PDF for a quotation.
+ * Generates a PDF receipt for a quotation.
+ * Same format as salePdfGenerator — ticket 80mm width.
  * @param {Object} data
- * @param {number|string} data.cotizacionId - Quotation ID
- * @param {Date|string} data.fecha - Date
- * @param {string} data.cliente - Client name
+ * @param {number|string} data.cotizacionId - Quotation ID.
+ * @param {Date|string} data.fecha - Date.
+ * @param {string} data.cliente - Client name.
  * @param {Array} data.items - [{nombre, cantidad, precio}]
- * @param {number} data.subtotal - Subtotal
- * @param {number} data.descuento - Discount
- * @param {number} data.total - Total
- * @param {number} data.adelanto - Down payment
- * @param {number} data.saldo - Remaining balance
+ * @param {number} data.subtotal - Subtotal before discount.
+ * @param {number} data.descuento - Discount amount.
+ * @param {number} data.total - Final total.
+ * @param {number} data.adelanto - Down payment.
+ * @param {number} data.saldo - Remaining balance.
  */
 export const generateQuotationPDF = (data) => {
-    const doc = new jsPDF({ unit: 'mm', format: [80, 280] });
+    const doc = new jsPDF({ unit: 'mm', format: [80, 250] });
     const w = 80;
     let y = 10;
     const left = 5;
@@ -43,27 +44,35 @@ export const generateQuotationPDF = (data) => {
     doc.setTextColor(30, 30, 30);
     center('FERRETERÍA NOA', y, 14, 'bold');
     y += 5;
-    doc.setTextColor(80);
-    center('COTIZACIÓN / PRESUPUESTO', y, 10, 'bold');
-    y += 5;
     doc.setTextColor(100);
-    center(`N° ${data.cotizacionId}`, y, 8);
+    center('Cotización / Presupuesto', y, 9);
     y += 7;
     dashed(y); y += 5;
 
-    // QUOTE INFO
+    // QUOTE INFO  (mismo bloque que venta)
     doc.setTextColor(30); doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    doc.text('Fecha:', left, y);
+    doc.text('Producto(s):', left, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(dateText, left + 13, y);
+    const productNames = data.items.map(i => i.nombre).join(', ');
+    const maxW = right - left - 22;
+    const splitNames = doc.splitTextToSize(productNames, maxW);
+    doc.text(splitNames, left + 22, y);
+    y += (splitNames.length * 3.5) + 1;
+
+    doc.text(dateText, right - doc.getTextWidth(dateText), y);
     y += 4;
 
     doc.setFont('helvetica', 'bold');
     doc.text('Cliente:', left, y);
     doc.setFont('helvetica', 'normal');
-    const clienteText = data.cliente.length > 28 ? data.cliente.substring(0, 28) + '...' : data.cliente;
-    doc.text(clienteText, left + 14, y);
+    doc.text(data.cliente.length > 28 ? data.cliente.substring(0, 28) + '...' : data.cliente, left + 14, y);
+    y += 4;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('N° Cotiz.:', left, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(data.cotizacionId), left + 18, y);
     y += 5;
     dashed(y); y += 4;
 
@@ -90,7 +99,7 @@ export const generateQuotationPDF = (data) => {
     y += 1; dashed(y); y += 5;
 
     // TOTALS
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(30);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
     const stStr = `Bs ${Number(data.subtotal).toFixed(2)}`;
     doc.text('Subtotal:', left, y);
     doc.text(stStr, right - doc.getTextWidth(stStr), y);
@@ -109,31 +118,29 @@ export const generateQuotationPDF = (data) => {
     const tStr = `Bs ${Number(data.total).toFixed(2)}`;
     doc.text('TOTAL:', left, y);
     doc.text(tStr, right - doc.getTextWidth(tStr), y);
-    y += 5;
+    y += 6;
 
-    if (data.adelanto > 0) {
+    // ADELANTO / SALDO — campos específicos de cotización
+    if (Number(data.adelanto) > 0) {
         doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-        doc.setTextColor(60, 150, 60);
+        doc.setTextColor(30);
         const adStr = `Bs ${Number(data.adelanto).toFixed(2)}`;
         doc.text('Adelanto:', left, y);
         doc.text(adStr, right - doc.getTextWidth(adStr), y);
         y += 4;
 
-        doc.setTextColor(180, 80, 0);
         doc.setFont('helvetica', 'bold');
         const salStr = `Bs ${Number(data.saldo).toFixed(2)}`;
         doc.text('Saldo Pendiente:', left, y);
         doc.text(salStr, right - doc.getTextWidth(salStr), y);
-        y += 4;
-        doc.setTextColor(30);
+        y += 6;
     }
 
-    y += 2;
     dashed(y); y += 5;
 
     // FOOTER
     doc.setTextColor(120); doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-    center('Esta cotización es válida por 30 días.', y, 7);
+    center('Válida por 30 días.', y, 8, 'bold');
     y += 4;
     center('Ferretería NOA - Su ferretería de confianza', y, 6.5);
 
